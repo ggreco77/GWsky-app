@@ -15,6 +15,9 @@ public class Master : MonoBehaviour {
         //To allow the navigation bar to be shown.
         Screen.fullScreen = false;
 
+        //Screen is oriented horizontally
+        Screen.orientation = ScreenOrientation.LandscapeLeft;
+
         //Get a reference to each gameObject in the scene.
         main_camera = GameObject.Find("Main Camera").GetComponent<CameraRig>() as CameraRig;
         input_controller = GameObject.Find("Input Controller").GetComponent<InputController>() as InputController;
