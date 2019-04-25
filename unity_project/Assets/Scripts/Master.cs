@@ -8,6 +8,7 @@ public class Master : MonoBehaviour {
     public InputController input_controller;
     public Transform sphere;
     public DebugMessages debug_messages;
+    public TextureButton texture_button;
 
 	// Use this for initialization
 	void Start () {
@@ -19,9 +20,11 @@ public class Master : MonoBehaviour {
         input_controller = GameObject.Find("Input Controller").GetComponent<InputController>() as InputController;
         sphere = GameObject.Find("Sphere").transform;
         debug_messages = GameObject.Find("Debug Messages Canvas").GetComponent<DebugMessages>() as DebugMessages;
+        texture_button = GameObject.Find("Change Texture Button Canvas").transform.Find("Button").gameObject.GetComponent<TextureButton>() as TextureButton;
 
         //Run initialization functions for the referenced gameObjects.
         debug_messages.Init();
+        texture_button.Init(sphere);
         main_camera.Init(debug_messages);
         
 	}

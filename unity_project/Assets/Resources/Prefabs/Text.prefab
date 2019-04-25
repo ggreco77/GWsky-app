@@ -22,7 +22,7 @@ GameObject:
   - component: {fileID: 222243109200774126}
   - component: {fileID: 114625071642770134}
   m_Layer: 0
-  m_Name: Debug Text
+  m_Name: Text
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
