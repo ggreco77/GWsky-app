@@ -4,16 +4,12 @@ using UnityEngine;
 
 public class InputController : MonoBehaviour {
 
-	// Use this for initialization
-	void Start () {
-		
-	}
-	
-	// Update is called once per frame
-	void Update () {
+	public void CheckForExit () {
+        /*
         if (Input.GetKey("escape"))
         {
             Application.Quit();
         }
+        */
     }
 }
