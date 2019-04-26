@@ -378,7 +378,7 @@ MeshRenderer:
   m_ReflectionProbeUsage: 1
   m_RenderingLayerMask: 4294967295
   m_Materials:
-  - {fileID: 2100000, guid: 391cf28df068002438550d6f1554ebcf, type: 2}
+  - {fileID: 2100000, guid: 33e5e0041ec8eb5478ae0efe5a7cf225, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -602,12 +602,12 @@ Prefab:
     - target: {fileID: 114625071642770134, guid: 501d23c0ef8808440b7e63326702c996,
         type: 2}
       propertyPath: m_havePropertiesChanged
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 114625071642770134, guid: 501d23c0ef8808440b7e63326702c996,
         type: 2}
       propertyPath: m_isInputParsingRequired
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 114625071642770134, guid: 501d23c0ef8808440b7e63326702c996,
         type: 2}
@@ -662,12 +662,12 @@ Prefab:
     - target: {fileID: 114625071642770134, guid: 501d23c0ef8808440b7e63326702c996,
         type: 2}
       propertyPath: m_fontSize
-      value: 50
+      value: 30
       objectReference: {fileID: 0}
     - target: {fileID: 114625071642770134, guid: 501d23c0ef8808440b7e63326702c996,
         type: 2}
       propertyPath: m_fontSizeBase
-      value: 50
+      value: 30
       objectReference: {fileID: 0}
     - target: {fileID: 114625071642770134, guid: 501d23c0ef8808440b7e63326702c996,
         type: 2}
@@ -879,12 +879,12 @@ Prefab:
     - target: {fileID: 224628405943149978, guid: 501d23c0ef8808440b7e63326702c996,
         type: 2}
       propertyPath: m_AnchoredPosition.x
-      value: -100
+      value: -109
       objectReference: {fileID: 0}
     - target: {fileID: 224628405943149978, guid: 501d23c0ef8808440b7e63326702c996,
         type: 2}
       propertyPath: m_AnchoredPosition.y
-      value: 450
+      value: 144
       objectReference: {fileID: 0}
     - target: {fileID: 224628405943149978, guid: 501d23c0ef8808440b7e63326702c996,
         type: 2}
@@ -940,6 +940,16 @@ Prefab:
       propertyPath: m_Name
       value: Debug Text
       objectReference: {fileID: 0}
+    - target: {fileID: 114625071642770134, guid: 501d23c0ef8808440b7e63326702c996,
+        type: 2}
+      propertyPath: m_fontSize
+      value: 14
+      objectReference: {fileID: 0}
+    - target: {fileID: 114625071642770134, guid: 501d23c0ef8808440b7e63326702c996,
+        type: 2}
+      propertyPath: m_fontSizeBase
+      value: 14
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 501d23c0ef8808440b7e63326702c996, type: 2}
   m_IsPrefabAsset: 0
@@ -985,8 +995,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -193, y: -527}
-  m_SizeDelta: {x: 232.2, y: 100}
+  m_AnchoredPosition: {x: -266.9, y: -148}
+  m_SizeDelta: {x: 130.5, y: 54.1}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &2104127389
 MonoBehaviour:

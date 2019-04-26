@@ -5,7 +5,7 @@ using UnityEngine.UI;
 
 public class TextureButton : MonoBehaviour {
 
-    int _tex = 0;
+    int _tex_n = -1;
     Transform _sphere;
 
 	public void Init(Transform sphere)
@@ -14,17 +14,24 @@ public class TextureButton : MonoBehaviour {
 
         Button button = gameObject.GetComponent<Button>() as Button;
         Renderer renderer = _sphere.gameObject.GetComponent<Renderer>() as Renderer;
+
+        renderer.material = Resources.Load<Material>("Materials/world_test 1") as Material;
+        _tex_n = 1;
+
         button.onClick.AddListener(delegate
         {
-            if (_tex == 0)
+            _tex_n = (_tex_n + 1) % 3;
+            if (_tex_n == 0)
             {
-                _tex = 1;
                 renderer.material = Resources.Load<Material>("Materials/PANO_IRIS_GW170814_Poly 1") as Material;
+            }
+            else if (_tex_n == 1)
+            {
+                renderer.material = Resources.Load<Material>("Materials/world_test 1") as Material;
             }
             else
             {
-                _tex = 0;
-                renderer.material = Resources.Load<Material>("Materials/world_test 1") as Material;
+                renderer.material = Resources.Load<Material>("Materials/PANO_Mellinger_GW170814_Poly") as Material;
             }
         });
     }
