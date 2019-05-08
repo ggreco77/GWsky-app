@@ -1,42 +1,41 @@
-﻿using System.Collections;
+﻿using System.IO;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class Master : MonoBehaviour {
 
     public CameraRig main_camera;
-    public InputController input_controller;
     public Transform sphere;
     public DebugMessages debug_messages;
     public TextureButton texture_button;
+    public GWEventHandler GW_event_handler;
+    public StateMachine state_machine;
 
-	// Use this for initialization
+	// Application Initialization
 	void Start () {
         //To allow the navigation bar to be shown.
         Screen.fullScreen = false;
 
-        //Screen is oriented horizontally
+        //Screen is always oriented horizontally, for better view.
         Screen.orientation = ScreenOrientation.LandscapeLeft;
 
         //Get a reference to each gameObject in the scene.
         main_camera = GameObject.Find("Main Camera").GetComponent<CameraRig>() as CameraRig;
-        input_controller = GameObject.Find("Input Controller").GetComponent<InputController>() as InputController;
         sphere = GameObject.Find("Sphere").transform;
         debug_messages = GameObject.Find("Debug Messages Canvas").GetComponent<DebugMessages>() as DebugMessages;
         texture_button = GameObject.Find("Change Texture Button Canvas").transform.Find("Button").gameObject.GetComponent<TextureButton>() as TextureButton;
+        GW_event_handler = GameObject.Find("Event Handler").GetComponent<GWEventHandler>() as GWEventHandler;
+        state_machine = GameObject.Find("State Machine").GetComponent<StateMachine>() as StateMachine;
 
         //Run initialization functions for the referenced gameObjects.
+        state_machine.Init(this);
         debug_messages.Init();
-        texture_button.Init(sphere);
         main_camera.Init(debug_messages);
-        
-	}
-	
-	// Update is called once per frame
-	void Update () {
+        GW_event_handler.Init(debug_messages);
+        texture_button.Init(sphere, GW_event_handler, debug_messages);
 
-        //Run update functions for the referenced gameObjects.
-        main_camera.Rotate();
-        input_controller.CheckForExit();
-	}
+        //Set initial application state
+        state_machine.IssueChangeState(new State_LookAround(this));
+    }
 }
