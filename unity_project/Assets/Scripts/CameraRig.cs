@@ -39,7 +39,7 @@ public class CameraRig : MonoBehaviour
             //Enable gyroscope usage
             Input.gyro.enabled = true;
 
-            _debug_messages.Print("No errors detected.", DebugMessages.Colors.Neutral);
+            _debug_messages.PrintClear("No errors detected.", DebugMessages.Colors.Neutral);
         }
     }
 

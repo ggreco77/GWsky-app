@@ -5,8 +5,11 @@ using TMPro;
 
 public class DebugMessages : MonoBehaviour {
 
+    const int MAX_LINES = 7;
+
     //Reference to child text
     TextMeshProUGUI _debug_text;
+    int _lines = 0;
 
     //Constant text colors
     public enum Colors {       Neutral,                         Warning,                       Error };
@@ -20,7 +23,29 @@ public class DebugMessages : MonoBehaviour {
 
     public void Print(string message, Colors color)
     {
-        _debug_text.text = message;
-        _debug_text.color = _text_colors[(int) color];
+        _debug_text.text += "<color=#" + ColorUtility.ToHtmlStringRGBA(_text_colors[(int)color]) + ">" + message + "</color>\n";
+
+        Trim();
+    }
+
+    public void PrintClear(string message, Colors color)
+    {
+        _debug_text.text = "<color=#" + ColorUtility.ToHtmlStringRGBA(_text_colors[(int)color]) + ">" + message + "</color>\n";
+
+        Trim();
+    }
+
+    //Trims the first line of text if there are too many
+    void Trim()
+    {
+        //Compute number of lines
+        _lines = _debug_text.text.Split('\n').Length - 1;
+
+        //Check if there are too many lines
+        if (_lines > MAX_LINES)
+        {
+            _lines = MAX_LINES;
+            _debug_text.text = _debug_text.text.Remove(0, _debug_text.text.IndexOf('\n') + 1);
+        }
     }
 }
