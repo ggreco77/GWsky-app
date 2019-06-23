@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class ChangeTelescopeButton : MonoBehaviour {
+public class ChangeTelescopeButton : Button {
 
     int _tex_n = -1;
     Transform _sphere;
@@ -12,7 +12,6 @@ public class ChangeTelescopeButton : MonoBehaviour {
 
 	public void Set(Transform sphere, GWEventDatabase GW_event_db, DebugMessages debug_messages)
     {
-
         _sphere = sphere;
         _event_data = GW_event_db.evt_data;
         _debug_messages = debug_messages;

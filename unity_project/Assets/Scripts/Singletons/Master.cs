@@ -15,13 +15,17 @@ public class Master : MonoBehaviour {
     public StateMachine state_machine;
     public Canvas selection_canvas;
     public Canvas BG_canvas;
+    public Canvas mainmenu_canvas;
+    public Canvas credits_canvas;
+    public Canvas options_canvas;
+    public Canvas info_canvas;
 
-	// Application Initialization
-	void Start () {
+    // Application Initialization
+    void Start () {
         //To allow the navigation bar to be shown.
         Screen.fullScreen = false;
 
-        //Screen is always oriented horizontally, for better view.
+        //Screen is always oriented horizontally, for better view and coding simplicity.
         Screen.orientation = ScreenOrientation.LandscapeLeft;
 
         //Get a reference to each gameObject in the scene.
@@ -33,6 +37,10 @@ public class Master : MonoBehaviour {
         GW_event_db = GameObject.Find("GW Event Database").GetComponent<GWEventDatabase>() as GWEventDatabase;
         state_machine = GameObject.Find("State Machine").GetComponent<StateMachine>() as StateMachine;
         selection_canvas = GameObject.Find("Selection Canvas").GetComponent<Canvas>() as Canvas;
+        mainmenu_canvas = GameObject.Find("Main Menu Canvas").GetComponent<Canvas>() as Canvas;
+        options_canvas = GameObject.Find("Options Canvas").GetComponent<Canvas>() as Canvas;
+        credits_canvas = GameObject.Find("Credits Canvas").GetComponent<Canvas>() as Canvas;
+        info_canvas = GameObject.Find("Info Canvas").GetComponent<Canvas>() as Canvas;
         BG_canvas = GameObject.Find("BG Canvas").GetComponent<Canvas>() as Canvas;
 
         //Run initialization functions for the referenced gameObjects.
@@ -47,8 +55,8 @@ public class Master : MonoBehaviour {
         //Disable gameObjects as needed when the application begins.
         StartDisable();
 
-        //Set initial application state
-        state_machine.IssueChangeState(new State_GWEventSelection(this));
+        //Set initial application state (Main Menu)
+        state_machine.IssueChangeState(new State_MainMenu(this));
     }
 
     //Function to disable gameObjects as needed when the application begins.
@@ -57,7 +65,10 @@ public class Master : MonoBehaviour {
         selection_canvas.enabled = false;
         look_UI.canvas.enabled = false;
         BG_canvas.enabled = false;
-
+        mainmenu_canvas.enabled = false;
+        options_canvas.enabled = false;
+        credits_canvas.enabled = false;
+        info_canvas.enabled = false;
     }
 }
 
@@ -68,11 +79,18 @@ public struct LookUI
         this.canvas = canvas;
         telescope_button = canvas.transform.Find("Change Telescope Button").gameObject.GetComponent<ChangeTelescopeButton>() as ChangeTelescopeButton;
         select_GW_button = canvas.transform.Find("Change GW Event Button").gameObject.GetComponent<Button>() as Button;
+        info_button = canvas.transform.Find("Info Button").gameObject.GetComponent<Button>() as Button;
 
         select_GW_button.onClick.AddListener(delegate
         {
             //Change application state
             master.state_machine.IssueChangeState(new State_GWEventSelection(master));
+        });
+
+        info_button.onClick.AddListener(delegate
+        {
+            //Change application state
+            master.state_machine.IssueChangeState(new State_LookAroundInfo(master));
         });
     }
 
@@ -80,4 +98,5 @@ public struct LookUI
 
     public ChangeTelescopeButton telescope_button;
     public Button select_GW_button;
+    public Button info_button;
 }
