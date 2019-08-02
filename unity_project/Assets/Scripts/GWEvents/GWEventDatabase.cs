@@ -14,28 +14,48 @@ public class GWEventDatabase : MonoBehaviour {
     //Struct containing currently loaded event.
     public EventData evt_data;
 
-    DebugMessages _debug_messages;
-
     void Awake()
     {
         //Base path is initialized here because Unity doesn't allow using persistentDataPath outside a function.
         base_path = Application.persistentDataPath + "/Events/";
     }
 
-    public void Init(DebugMessages debug_messages)
+    // Checks whether the "Events" directory exists, creates it if not.
+    void TestEventDirectory()
     {
-        _debug_messages = debug_messages;
+        Directory.CreateDirectory(base_path);
     }
+    void CreateTestEvent()
+    {
+        Directory.CreateDirectory(base_path + "GW170814");
+        Directory.CreateDirectory(base_path + "GW170814/data");
 
+        TextAsset IRIS_image = Resources.Load("Packets/GW170814/IRIS") as TextAsset;
+        File.WriteAllBytes(base_path + "GW170814/IRIS.jpg", IRIS_image.bytes);
+
+        TextAsset Mellinger_image = Resources.Load("Packets/GW170814/Mellinger") as TextAsset;
+        File.WriteAllBytes(base_path + "GW170814/Mellinger.jpg", Mellinger_image.bytes);
+
+        TextAsset evt_data = Resources.Load("Packets/GW170814/data") as TextAsset;
+        File.WriteAllBytes(base_path + "GW170814/data/data.txt", evt_data.bytes);
+
+    }
     public string[] GetEventNames()
     {
-        string[] names = Directory.GetDirectories(base_path);
-        for (int i = 0; i < names.Length; i++)
-        {
+        // First, make sure the "Events" directory exists
+        TestEventDirectory();
+        List<string> names = new List<string>(Directory.GetDirectories(base_path));
+        for (int i = 0; i < names.Count; i++)
             names[i] = names[i].Replace(Application.persistentDataPath + "/Events/", "");
+
+        // If there are no events, produce a single test event
+        if (names.Count == 0)
+        {
+            CreateTestEvent();
+            names.Add("GW170814");
         }
 
-        return names;
+        return names.ToArray();
     }
 
     public void LoadEventSummaries()
@@ -54,7 +74,7 @@ public class GWEventDatabase : MonoBehaviour {
                 using (StreamReader file = new StreamReader(base_path + evt_names[i] + "/data/data.txt"))
                 {
                     string[] str;
-                    while ((str = FileRead.ReadCurrLine(file)) != null)
+                    while ((str = TextRead.ReadCurrLine(file)) != null)
                     {
                         switch (str[0])
                         {
@@ -62,7 +82,7 @@ public class GWEventDatabase : MonoBehaviour {
                                 evt_summaries[i].name = str[1];
                                 break;
                             case "Date":
-                                evt_summaries[i].date = DateTime.Parse(str[1]);
+                                evt_summaries[i].date = DateTime.ParseExact(str[1], "MM/dd/yyyy HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture);
                                 break;
                         }
                     }
@@ -72,7 +92,7 @@ public class GWEventDatabase : MonoBehaviour {
             }
             catch (Exception e)
             {
-                _debug_messages.Print("Could not load Event data file! " + e.Message, DebugMessages.Colors.Error);
+                DebugMessages.Print("Could not load Event data file! " + e.Message, DebugMessages.Colors.Error);
             }
 
             Texture2D portrait = new Texture2D(2, 2);
@@ -101,7 +121,7 @@ public class GWEventDatabase : MonoBehaviour {
             }
             catch (UnityException e)
             {
-                _debug_messages.Print("Could not load Event Image data! " + e.Message, DebugMessages.Colors.Error);
+                DebugMessages.Print("Could not load Event Image data! " + e.Message, DebugMessages.Colors.Error);
                 break;
             }
         }
@@ -112,7 +132,7 @@ public class GWEventDatabase : MonoBehaviour {
             using (StreamReader file = new StreamReader(base_path + folder_name + "/data/data.txt"))
             {
                 string[] str;
-                while ((str = FileRead.ReadCurrLine(file)) != null)
+                while ((str = TextRead.ReadCurrLine(file)) != null)
                 {
                     switch (str[0])
                     {
@@ -133,7 +153,7 @@ public class GWEventDatabase : MonoBehaviour {
         }
         catch (Exception e)
         {
-            _debug_messages.Print("Could not load Event data file! " + e.Message, DebugMessages.Colors.Error);
+            DebugMessages.Print("Could not load Event data file! " + e.Message, DebugMessages.Colors.Error);
         }
 
         //Write event properties into new structure
@@ -143,7 +163,6 @@ public class GWEventDatabase : MonoBehaviour {
         //Return newly created structure
         return new_evt;
     }
-
     public void ApplyEventPhotosphere(Transform sphere, EventData evt, int index)
     {
         if (index >= 0 && index < evt.photospheres.Length)
@@ -152,7 +171,7 @@ public class GWEventDatabase : MonoBehaviour {
             sphere.gameObject.GetComponent<Renderer>().material.mainTexture = evt.photospheres[index];
         }
         else
-            _debug_messages.Print("Could not load Photosphere! Index error!\n", DebugMessages.Colors.Error);
+            DebugMessages.Print("Could not load Photosphere! Index error!\n", DebugMessages.Colors.Error);
     }
 }
 

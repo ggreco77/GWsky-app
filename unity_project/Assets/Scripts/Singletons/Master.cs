@@ -9,7 +9,7 @@ public class Master : MonoBehaviour {
     public VirtualObjects vo;
     public CameraRig main_camera;
     public Transform sphere;
-    public DebugMessages debug_messages;
+    public SphereAligner sphere_aligner;
     public LookUI look_UI;
     public GWEventDatabase GW_event_db;
     public StateMachine state_machine;
@@ -32,9 +32,9 @@ public class Master : MonoBehaviour {
         vo = GameObject.Find("Virtual Objects").GetComponent<VirtualObjects>() as VirtualObjects;
         main_camera = GameObject.Find("Main Camera").GetComponent<CameraRig>() as CameraRig;
         sphere = GameObject.Find("Sphere").transform;
-        debug_messages = GameObject.Find("Debug Messages Canvas").GetComponent<DebugMessages>() as DebugMessages;
         look_UI = new LookUI(this, GameObject.Find("LookAround UI").GetComponent<Canvas>());
         GW_event_db = GameObject.Find("GW Event Database").GetComponent<GWEventDatabase>() as GWEventDatabase;
+        sphere_aligner = GameObject.Find("Sphere").GetComponent<SphereAligner>() as SphereAligner;
         state_machine = GameObject.Find("State Machine").GetComponent<StateMachine>() as StateMachine;
         selection_canvas = GameObject.Find("Selection Canvas").GetComponent<Canvas>() as Canvas;
         mainmenu_canvas = GameObject.Find("Main Menu Canvas").GetComponent<Canvas>() as Canvas;
@@ -44,10 +44,9 @@ public class Master : MonoBehaviour {
         BG_canvas = GameObject.Find("BG Canvas").GetComponent<Canvas>() as Canvas;
 
         //Run initialization functions for the referenced gameObjects.
-        state_machine.Init(this);
-        debug_messages.Init();
-        main_camera.Init(debug_messages);
-        GW_event_db.Init(debug_messages);
+        sphere_aligner.Init(sphere);
+        state_machine.Init(this, sphere_aligner);
+        main_camera.Init();
 
         //Load all event summaries.
         GW_event_db.LoadEventSummaries();

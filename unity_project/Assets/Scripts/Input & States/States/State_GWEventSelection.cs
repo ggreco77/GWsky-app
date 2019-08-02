@@ -24,8 +24,6 @@ public class State_GWEventSelection : State {
         //For each event summary...
         for (int i = 0; i < master.GW_event_db.evt_summaries.Length; i++)
         {
-            EventSummary summary = master.GW_event_db.evt_summaries[i];
-
             //Create a new button and add it to the grid.
             EventButton button = GameObject.Instantiate(master.vo.eventButton, _grid.transform).GetComponent<EventButton>() as EventButton;
             button.Init(master, i, master.GW_event_db.evt_summaries[i].name);

@@ -31,7 +31,6 @@ public class EventButton : MonoBehaviour {
         FitGridWidth();
 
         Transform sphere = master.sphere;
-        DebugMessages debug_messages = master.debug_messages;
         Button button = gameObject.GetComponent<Button>() as Button;
 
         TextMeshProUGUI text = button.gameObject.transform.Find("Text").GetComponent< TextMeshProUGUI>() as TextMeshProUGUI;
@@ -46,13 +45,13 @@ public class EventButton : MonoBehaviour {
                 string event_name = _GW_event_db.GetEventNames()[_index];
                 _GW_event_db.evt_data = _GW_event_db.FetchEvent(event_name);
                 _GW_event_db.ApplyEventPhotosphere(sphere, _GW_event_db.evt_data, 0);
-                master.look_UI.telescope_button.Set(sphere, _GW_event_db, debug_messages);
+                master.look_UI.telescope_button.Set(sphere, _GW_event_db);
 
                 //Change application state (exit menu).
                 master.state_machine.IssueChangeState(new State_LookAround(master));
             }
             else
-                debug_messages.Print("No events could be loaded!", DebugMessages.Colors.Error);
+                DebugMessages.Print("No events could be loaded!", DebugMessages.Colors.Error);
         });
     }
 }

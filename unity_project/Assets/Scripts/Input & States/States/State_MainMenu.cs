@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using System;
 
 public class State_MainMenu : State {
     public State_MainMenu(Master master)
@@ -54,7 +55,7 @@ public class State_MainMenu : State {
     }
 
     public override void Update()
-    {   
+    {
     }
 
     public override void Exit()

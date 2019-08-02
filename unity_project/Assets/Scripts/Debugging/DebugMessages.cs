@@ -3,40 +3,47 @@ using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 
-public class DebugMessages : MonoBehaviour {
+public static class DebugMessages {
 
     const int MAX_LINES = 7;
 
     //Reference to child text
-    TextMeshProUGUI _debug_text;
-    int _lines = 0;
+    static TextMeshProUGUI _debug_text;
+    static int _lines = 0;
+
+    static bool _initiated = false;
 
     //Constant text colors
     public enum Colors {       Neutral,                         Warning,                       Error };
-    Color32[] _text_colors = { new Color32(255, 255, 255, 255), new Color32(255, 255, 0, 255), new Color32(255, 0, 0, 255) };
+    static Color32[] _text_colors = { new Color32(255, 255, 255, 255), new Color32(255, 255, 0, 255), new Color32(255, 0, 0, 255) };
 
-    public void Init()
+    public static void Init()
     {
         //Get child text.
-        _debug_text = transform.Find("Debug Text").gameObject.GetComponent<TextMeshProUGUI>() as TextMeshProUGUI;
+        _debug_text = GameObject.Find("Debug Messages Canvas/Debug Text").gameObject.GetComponent<TextMeshProUGUI>() as TextMeshProUGUI;
+        _initiated = true;
     }
 
-    public void Print(string message, Colors color)
+    public static void Print(string message, Colors color = DebugMessages.Colors.Neutral)
     {
+        if (!_initiated)
+            Init();
         _debug_text.text += "<color=#" + ColorUtility.ToHtmlStringRGBA(_text_colors[(int)color]) + ">" + message + "</color>\n";
 
         Trim();
     }
 
-    public void PrintClear(string message, Colors color)
+    public static void PrintClear(string message, Colors color = DebugMessages.Colors.Neutral)
     {
+        if (!_initiated)
+            Init();
         _debug_text.text = "<color=#" + ColorUtility.ToHtmlStringRGBA(_text_colors[(int)color]) + ">" + message + "</color>\n";
 
         Trim();
     }
 
     //Trims the first line of text if there are too many
-    void Trim()
+    static void Trim()
     {
         //Compute number of lines
         _lines = _debug_text.text.Split('\n').Length - 1;

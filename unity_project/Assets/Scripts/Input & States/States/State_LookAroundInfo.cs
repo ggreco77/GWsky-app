@@ -10,8 +10,6 @@ public class State_LookAroundInfo : State {
 
     public override void Update()
     {
-        //Run update functions for the referenced gameObjects.
-        master.main_camera.Rotate();
     }
 
     public override void Enter()
