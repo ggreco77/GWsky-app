@@ -73,12 +73,15 @@ public class StateMachine : MonoBehaviour {
     void Update() {
         _master.main_camera.Rotate();
 
-        sphere_align_count++;
+        //IF should be deleted, only for testing
+        if (sphere_align_count > 0)
+            sphere_align_count++;
         if (sphere_align_count == SPHERE_ALIGN_CD)
         {
+            sphere_align_count = 0;
+
             Input.compass.enabled = true;
             Input.location.Start();
-            sphere_align_count = 0;
             _sphere_aligner.AlignSphere();
             DebugMessages.Print("Local Coordinates of point of RA_Dec (180, 0): " + _sphere_aligner.az_h.ToString());
             DebugMessages.PrintClear("Magnetometer: " + Input.compass.rawVector.normalized.ToString());
