@@ -1250,7 +1250,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 1}
   m_AnchorMax: {x: 0.5, y: 1}
-  m_AnchoredPosition: {x: 0, y: 1364.514}
+  m_AnchoredPosition: {x: 0, y: 145046.38}
   m_SizeDelta: {x: 738, y: 200}
   m_Pivot: {x: 0.5, y: 1}
 --- !u!114 &372315114
@@ -3143,7 +3143,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1121622916}
-  m_Mesh: {fileID: 4300000, guid: fd1714d55a2da5b40a7031ea2fd429c5, type: 2}
+  m_Mesh: {fileID: 4300000, guid: aeaee06a527d8084686a10d70d16531e, type: 2}
 --- !u!4 &1121622919
 Transform:
   m_ObjectHideFlags: 0
@@ -3151,13 +3151,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1121622916}
-  m_LocalRotation: {x: -0.7071068, y: 0, z: 0, w: 0.7071068}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 10, y: 10, z: 10}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 3
-  m_LocalEulerAnglesHint: {x: -90, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!64 &1121622920
 MeshCollider:
   m_ObjectHideFlags: 0

@@ -25,7 +25,8 @@ public class GWEventDatabase : MonoBehaviour {
     {
         Directory.CreateDirectory(base_path);
     }
-    void CreateTestEvent()
+
+    void CreateTestEvent_GW170814()
     {
         Directory.CreateDirectory(base_path + "GW170814");
         Directory.CreateDirectory(base_path + "GW170814/data");
@@ -38,22 +39,38 @@ public class GWEventDatabase : MonoBehaviour {
 
         TextAsset evt_data = Resources.Load("Packets/GW170814/data") as TextAsset;
         File.WriteAllBytes(base_path + "GW170814/data/data.txt", evt_data.bytes);
-
     }
+
+    void CreateTestEvent_CenterFind()
+    {
+
+        Directory.CreateDirectory(base_path + "Center_Find");
+        Directory.CreateDirectory(base_path + "Center_Find/data");
+
+        TextAsset image = Resources.Load("Packets/Center_Find/0") as TextAsset;
+        File.WriteAllBytes(base_path + "Center_Find/0.jpg", image.bytes);
+
+        TextAsset evt_data = Resources.Load("Packets/Center_Find/data") as TextAsset;
+        File.WriteAllBytes(base_path + "Center_Find/data/data.txt", evt_data.bytes);
+    }
+
     public string[] GetEventNames()
     {
         // First, make sure the "Events" directory exists
         TestEventDirectory();
         List<string> names = new List<string>(Directory.GetDirectories(base_path));
-        for (int i = 0; i < names.Count; i++)
-            names[i] = names[i].Replace(Application.persistentDataPath + "/Events/", "");
 
-        // If there are no events, produce a single test event
+        // If there are no events, produce two test events
         if (names.Count == 0)
         {
-            CreateTestEvent();
-            names.Add("GW170814");
+            CreateTestEvent_GW170814();
+            CreateTestEvent_CenterFind();
+
+            names = new List<string>(Directory.GetDirectories(base_path));
         }
+
+        for (int i = 0; i < names.Count; i++)
+            names[i] = names[i].Replace(Application.persistentDataPath + "/Events/", "");
 
         return names.ToArray();
     }

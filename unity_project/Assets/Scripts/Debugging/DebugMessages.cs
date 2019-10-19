@@ -5,7 +5,7 @@ using TMPro;
 
 public static class DebugMessages {
 
-    const int MAX_LINES = 7;
+    const int MAX_LINES = 10;
 
     //Reference to child text
     static TextMeshProUGUI _debug_text;

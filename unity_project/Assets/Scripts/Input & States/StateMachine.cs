@@ -76,22 +76,9 @@ public class StateMachine : MonoBehaviour {
         //IF should be deleted, only for testing
         if (sphere_align_count > 0)
             sphere_align_count++;
-        if (sphere_align_count == SPHERE_ALIGN_CD)
-        {
-            sphere_align_count = 0;
-
-            Input.compass.enabled = true;
-            Input.location.Start();
+        if (sphere_align_count == SPHERE_ALIGN_CD) {
+            sphere_align_count = 1;
             _sphere_aligner.AlignSphere();
-            DebugMessages.Print("Local Coordinates of point of RA_Dec (180, 0): " + _sphere_aligner.az_h.ToString());
-            DebugMessages.PrintClear("Magnetometer: " + Input.compass.rawVector.normalized.ToString());
-            DebugMessages.Print("Accelerometer: " + Input.gyro.gravity.normalized.ToString());
-            DebugMessages.Print("Compensated North Heading: " + CompassHandler.CompensatedHeading(Input.compass.rawVector,
-                                                                       new Vector3(Input.gyro.gravity.x, Input.gyro.gravity.z, Input.gyro.gravity.y)));
-            DebugMessages.Print("GPS: " + _sphere_aligner.GPS);
-            float phone_dir = (float)MathExtension.ToDegrees(System.Math.Atan2(Input.gyro.attitude.y, Input.gyro.attitude.x));
-            DebugMessages.Print("Phone Heading: " + phone_dir.ToString());
-            Input.location.Stop();
         }
 
         _states[_states_limit - 1].Update();

@@ -44,7 +44,7 @@ public class Master : MonoBehaviour {
         BG_canvas = GameObject.Find("BG Canvas").GetComponent<Canvas>() as Canvas;
 
         //Run initialization functions for the referenced gameObjects.
-        sphere_aligner.Init(sphere);
+        sphere_aligner.Init(sphere, main_camera.gameObject.transform);
         state_machine.Init(this, sphere_aligner);
         main_camera.Init();
 

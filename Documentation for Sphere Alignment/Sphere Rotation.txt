@@ -1,0 +1,15 @@
+I think you need the following :
+- granting the application access to some information and sensors :
+   1 - access to the localization of the user (longitude and latitude)
+   2 - access to the clock to have the local time and date
+   3 - access to the compass, so we know the azimuth where the phone is pointing
+   4 - access to some gyroscope information, so we know the vertical roll (do we point at the
+   horizon or zenith), and also the tilt 
+   5 - access to the camera, if you want to overlay information on images taken in real time,
+and also the parameters of the optics (f/d...)
+
+- with 1+2, you can find the transformation between equatorial coordinates and
+local (horizontal) coordinates, by a rotation of the sphere.
+- with 3+4 you can find the local coordinate pointed by the user (azimuth + elevation),
+and its orientation
+- with 5 you can have the size of the field of view that must be displayed

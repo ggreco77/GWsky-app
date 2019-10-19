@@ -12,13 +12,18 @@ using System.Threading.Tasks;
 public class SphereAligner : MonoBehaviour {
     // Minimum number of compass reading before the values can be accepted
     const int MIN_COMPASS_READINGS = 4;
+    const int MAX_COMPASS_READINGS = 12;
+
+    const int MIN_COMPASS_ACCURACY = 2; // degrees
 
     // Reference to sphere object in the scene
     Transform _sphere;
+    // Reference to camera object in the scene
+    Transform _camera;
 
     // Boolean to keep track of errors while computing sphere alignment
     bool _error = false;
-    // Mutex for function which computes sphere alignment (since it uses tasks and Unity redirects them to the main thread, a mutex cannot be used)
+    // Mutex for function which computes sphere alignment
     bool _lock;
 
     // These fields are public since they may be useful for logs or to be shown to the user
@@ -34,31 +39,29 @@ public class SphereAligner : MonoBehaviour {
     //GPS, in format (latitude, longitude)
     public Vector2 GPS { get; private set; }
     //Heading to True North
-    public float NorthDir { get; private set; }
+    public Vector3 RelNorth { get; private set; }
     //Accuracy of the Heading
-    public float NorthDirAccuracy { get; private set; }
+    public float RelNorthAccuracy { get; private set; }
     //Equatorial->Local Coordinates Converted
     public Vector2 az_h { get; private set; }
 
     //Init function, should be called by Master. Unfortunately Constructors do not work well with Unity, so a Init function has to be called.
-    public void Init(Transform sphere)
-    {
+    public void Init(Transform sphere, Transform camera) {
         // Copy reference to sphere
         _sphere = sphere;
+        _camera = camera;
 
         UTC = new DateTime(2000, 1, 1);
     }
 
     //Contact NIST server and retrieve UTC time. Asynchronous because it has to wait server response.
-    public async Task<DateTime> GetNISTDate()
-    {
+    public async Task<DateTime> GetNISTDate() {
         //Server to contact
         string server = "time.nist.gov";
         string string_response = string.Empty;
 
         //Connection attempt
-        try
-        {
+        try {
             //Create a TCP connection
             TcpClient tcpClient = new TcpClient();
             //Asynchronous connect, port 13
@@ -66,18 +69,15 @@ public class SphereAligner : MonoBehaviour {
             //Await closure of connection OR a 3 seconds timeout
             Task completed_task = await Task.WhenAny(task, Task.Delay(3000));
             //If there hasn't been a timeout...
-            if (completed_task == task)
-            {
+            if (completed_task == task) {
                 //Get the stream from the connection and pass it to a string
-                using (var reader = new StreamReader(tcpClient.GetStream()))
-                {
+                using (var reader = new StreamReader(tcpClient.GetStream())) {
                     string_response = reader.ReadToEnd();
                     reader.Close();
                 }
             }
             //Otherwise...
-            else
-            {
+            else {
                 //Print an error message and return.
                 DebugMessages.Print("Warning! Could not Connect to NIST Server. Timeout.", DebugMessages.Colors.Warning);
                 _error = true;
@@ -85,8 +85,7 @@ public class SphereAligner : MonoBehaviour {
             }
         }
         //If there has been some other kind of error...
-        catch (Exception e)
-        {
+        catch (Exception e) {
             //Print an error message and return.
             DebugMessages.Print("Warning! Could not Connect to NIST Server. " + e.Message, DebugMessages.Colors.Warning);
             _error = true;
@@ -94,8 +93,7 @@ public class SphereAligner : MonoBehaviour {
         }
 
         // Check to see that the UTC signature is there
-        if (string_response.Length > 47 && string_response.Substring(38, 9).Equals("UTC(NIST)"))
-        {
+        if (string_response.Length > 47 && string_response.Substring(38, 9).Equals("UTC(NIST)")) {
             // Parse the date
             int jd = int.Parse(string_response.Substring(1, 5));
             int yr = int.Parse(string_response.Substring(7, 2));
@@ -128,8 +126,7 @@ public class SphereAligner : MonoBehaviour {
     }
     /* Start location service, retrieve GPS and North True Heading, close location service. Returns values as a
        tuple of the GPS and North Heading angle. Asynchronous because of location service initialization and compass reading. */
-    public async Task<Tuple<Vector2, float>> GetGPSAndNorthDirection()
-    {
+    public async Task<Tuple<Vector2, Vector3>> GetGPSAndRelativeNorth() {
         GPS = new Vector2(0, 0);
 
         //Starts location service through Unity, checks GPS and compass availability. Function is asynchronous and returns
@@ -137,8 +134,7 @@ public class SphereAligner : MonoBehaviour {
         _error = !(await SensorExtension.UnityInputSensorsStart());
 
         //If there hasn't been an error...
-        if (!_error)
-        {
+        if (!_error) {
             //Get GPS data
             GPS = new Vector2(Input.location.lastData.latitude, Input.location.lastData.longitude);
 
@@ -150,33 +146,35 @@ public class SphereAligner : MonoBehaviour {
         SensorExtension.UnityInputSensorsStop();
 
         //Returns both GPS and True North Heading
-        return new Tuple<Vector2, float>(GPS, NorthDir);
+        return new Tuple<Vector2, Vector3>(GPS, RelNorth);
     }
     //Keeps querying compass until a good reading is found. Gets the median value from the list of results.
-    async Task WaitGoodCompassReading()
-    {
+    async Task WaitGoodCompassReading() {
         //Initialize list of headings.
         List<double> directions = new List<double>();
-        NorthDirAccuracy = -1;
+        List<Vector3> norths = new List<Vector3>();
+        RelNorthAccuracy = int.MaxValue;
         int count = 0;
-        //Read at least MIN_COMPASS_READINGS times and until accuracy is positive (see Unity documentation)
-        while (NorthDirAccuracy < 0 && count < MIN_COMPASS_READINGS)
-        {
+
+        do {
             //Add new heading to list
-            directions.Add(Input.compass.trueHeading);
-            //Last reading is also accuracy
-            NorthDirAccuracy = Input.compass.headingAccuracy;
+            norths.Add(CompassHandler.CompensatedHeading(Input.compass.rawVector,
+                                                             Input.gyro.gravity));
+            directions.Add(norths[norths.Count - 1].y);
             count++;
             //Delay for some time before next reading
-            await Task.Delay(TimeSpan.FromSeconds(0.2));
+            await Task.Delay(TimeSpan.FromSeconds(0.1));
         }
+        //Read at least MIN_COMPASS_READINGS times and until accuracy is positive (see Unity documentation)
+        while ((count < MIN_COMPASS_READINGS || RelNorthAccuracy > MIN_COMPASS_ACCURACY) &&
+               count < MAX_COMPASS_READINGS);
 
         //Compute median
-        NorthDir = (float)MathExtension.GetMedian(directions.ToArray());
+        RelNorth = norths[MathExtension.GetMedian(directions.ToArray()).Item2];
     }
+
     /*Converts a Vector2 containing (RA, Dec) coordinates in ICRS into a (az, h) Vector2 in local coordinates. */
-    public async Task<Vector2> ICRSToLocal(Vector2 RA_Dec)
-    {
+    public async Task<Vector2> ICRSToLocal(Vector2 RA_Dec) {
         az_h = new Vector2(0, 0);
 
         //Get updated UTC
@@ -195,7 +193,7 @@ public class SphereAligner : MonoBehaviour {
         GMST = new TimeSpan(0, hours, minutes, seconds);
 
         //Get GPS and True North Heading
-        await GetGPSAndNorthDirection();
+        await GetGPSAndRelativeNorth();
 
         // LST = GMST - longitude west = GMST + longitude east. Longitude is converted by dividing by 15
         // since 360 / 24 = 15
@@ -223,20 +221,17 @@ public class SphereAligner : MonoBehaviour {
         return az_h;
     }
 
-    public async void AlignSphere()
-    {
+    public async void AlignSphere() {
         //If function is not executing already...
-        if (!_lock)
-        {
+        if (!_lock) {
             //Lock so that another call to the function is not possible. This is safe because Unity can only use its
             //main thread to execute, so no racing conditions can happen between threads.
-            _lock = true;
+            _lock = true;   //NOTE: THREAD UNSAFE!!!!! FIX!!!!!
             //No errors at the beginning of execution.
             _error = false;
 
             //Compute alignment into a rotation vector.
             Vector2 rotation = await ComputeSphereAlignment();
-            //DebugMessages.Print("Rotation: " + rotation.x + " " + rotation.y);
 
             //Align sphere based on obtained rotation.
             ApplySphereAlignment(rotation);
@@ -249,33 +244,36 @@ public class SphereAligner : MonoBehaviour {
             DebugMessages.Print("Error! Sphere Alignment was requested again before completion!", DebugMessages.Colors.Error);
     }
     //Apply sphere alignment based on a rotation vector.
-    public void ApplySphereAlignment(Vector2 rotation)
-    {
-        //Reset sphere transform so that sphere rotation is consistent.
-        _sphere.eulerAngles = new Vector3(-90, 0, 0);
+    public void ApplySphereAlignment(Vector2 rotation) {
+        //Rotate sphere.
+        _sphere.rotation = _camera.rotation;
 
-        //Rotate sphere in world space.
-        _sphere.Rotate(rotation.x, rotation.y, 0, Space.World);
+        _sphere.RotateAround(Vector3.zero, _sphere.up, -RelNorth.z);          // Left-Right
+        _sphere.RotateAround(Vector3.zero, _sphere.right, RelNorth.x);        // Up-Down
+        _sphere.RotateAround(Vector3.zero, _sphere.forward, -RelNorth.y);     // Round
+
+        _sphere.RotateAround(Vector3.zero, _sphere.forward, -rotation.y);     // + Altitude
+        _sphere.RotateAround(Vector3.zero, _sphere.up, -rotation.x);          // + Azimuth
     }
     //Compute rotation vector used to align sphere
-    public async Task<Vector2> ComputeSphereAlignment()
-    {
-        // Center point of photosphere, used as a reference. We compute its local coordinates.
+    public async Task<Vector2> ComputeSphereAlignment() {
+        // Center point of photosphere, used as a reference.
         float c_RA = 180;
         float c_Dec = 0;
 
         //Compute local coordinates for our center point
         Vector2 c_az_h = await ICRSToLocal(new Vector2(c_RA, c_Dec));
 
-        //Create rotation vector based 
+        //Create rotation vector; note that Unity rotation is counterclockwise
         Vector2 rotation = new Vector2(c_az_h.x, c_az_h.y);
+        DebugMessages.PrintClear("Roll: " + MathExtension.DegRestrict(RelNorth.x));
+        DebugMessages.Print("Pitch: " + MathExtension.DegRestrict(RelNorth.z));
+        DebugMessages.Print("Yaw: " + MathExtension.DegRestrict(RelNorth.y));
+        DebugMessages.Print("(0, 180) point in az-alt coordinates: " + rotation.ToString());
+        DebugMessages.Print("Magnetometer: " + Input.compass.rawVector.ToString());
+        DebugMessages.Print("Accelerometer: " + Input.gyro.gravity.ToString());
+        DebugMessages.Print("Unity Heading: " + Input.compass.magneticHeading.ToString());
 
-        //Get where phone is pointing in Unity's world space through gyro, ignoring height component ("Equator" orientation).
-        Vector2 eq_orientation = new Vector2(Input.gyro.attitude.x, Input.gyro.attitude.y);
-        //Get phone heading angle
-        float phone_dir = (float)MathExtension.ToDegrees(System.Math.Atan2(eq_orientation.y, eq_orientation.x));
-
-        rotation = rotation + new Vector2(phone_dir + NorthDir, 0);
         return rotation;
     }
 }
