@@ -138,6 +138,10 @@ public class SphereAligner : MonoBehaviour {
             //Get GPS data
             GPS = new Vector2(Input.location.lastData.latitude, Input.location.lastData.longitude);
 
+            // Seems necessary, due to Unity's quirk in activating the compass
+            if (!Input.compass.enabled)
+                Input.compass.enabled = true;
+
             //Wait for a good compass reading. Asynchronous function
             await WaitGoodCompassReading();
         }

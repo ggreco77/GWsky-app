@@ -32,8 +32,6 @@ public static class SensorExtension {
                 _gyro_supported = SensorAvailable.TRUE;
                 //Enable gyroscope usage
                 Input.gyro.enabled = true;
-
-                DebugMessages.PrintClear("No errors detected.", DebugMessages.Colors.Neutral);
             }
         }
 
@@ -49,15 +47,6 @@ public static class SensorExtension {
             if (!Input.location.isEnabledByUser)
             {
                 DebugMessages.Print("Warning! GPS is not enabled!", DebugMessages.Colors.Warning);
-                _location_supported = SensorAvailable.FALSE;
-                return false;
-            }
-
-            Input.compass.enabled = true;
-
-            if (!Input.compass.enabled)
-            {
-                DebugMessages.Print("Warning! No Compass detected!", DebugMessages.Colors.Warning);
                 _location_supported = SensorAvailable.FALSE;
                 return false;
             }
@@ -87,6 +76,15 @@ public static class SensorExtension {
             if (Input.location.status == LocationServiceStatus.Failed)
             {
                 DebugMessages.Print("Warning! Failed to determine GPS Position!", DebugMessages.Colors.Warning);
+                _location_supported = SensorAvailable.FALSE;
+                return false;
+            }
+
+            Input.compass.enabled = true;
+
+            if (!Input.compass.enabled)
+            {
+                DebugMessages.Print("Warning! No Compass detected!", DebugMessages.Colors.Warning);
                 _location_supported = SensorAvailable.FALSE;
                 return false;
             }
