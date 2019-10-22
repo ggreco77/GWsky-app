@@ -90,6 +90,7 @@ public static class SensorExtension {
             }
         }
 
+        _location_supported = SensorAvailable.TRUE;
         return true;
     }
     public static void UnityInputSensorsStop()

@@ -138,10 +138,6 @@ public class SphereAligner : MonoBehaviour {
             //Get GPS data
             GPS = new Vector2(Input.location.lastData.latitude, Input.location.lastData.longitude);
 
-            // Seems necessary, due to Unity's quirk in activating the compass
-            if (!Input.compass.enabled)
-                Input.compass.enabled = true;
-
             //Wait for a good compass reading. Asynchronous function
             await WaitGoodCompassReading();
         }
@@ -163,7 +159,7 @@ public class SphereAligner : MonoBehaviour {
         do {
             //Add new heading to list
             norths.Add(CompassHandler.CompensatedHeading(Input.compass.rawVector,
-                                                             Input.gyro.gravity));
+                                                         Input.gyro.gravity));
             directions.Add(norths[norths.Count - 1].y);
             count++;
             //Delay for some time before next reading
@@ -245,7 +241,7 @@ public class SphereAligner : MonoBehaviour {
         }
         else
             //Otherwise, print an error and return without doing anything.
-            DebugMessages.Print("Error! Sphere Alignment was requested again before completion!", DebugMessages.Colors.Error);
+            DebugMessages.Print("Warning! Sphere Alignment was requested again before completion!", DebugMessages.Colors.Warning);
     }
     //Apply sphere alignment based on a rotation vector.
     public void ApplySphereAlignment(Vector2 rotation) {
@@ -273,6 +269,8 @@ public class SphereAligner : MonoBehaviour {
         DebugMessages.PrintClear("Roll: " + MathExtension.DegRestrict(RelNorth.x));
         DebugMessages.Print("Pitch: " + MathExtension.DegRestrict(RelNorth.z));
         DebugMessages.Print("Yaw: " + MathExtension.DegRestrict(RelNorth.y));
+        DebugMessages.Print("UTC Time: " + UTC);
+        DebugMessages.Print("GPS: " + GPS.ToString());
         DebugMessages.Print("(0, 180) point in az-alt coordinates: " + rotation.ToString());
         DebugMessages.Print("Magnetometer: " + Input.compass.rawVector.ToString());
         DebugMessages.Print("Accelerometer: " + Input.gyro.gravity.ToString());

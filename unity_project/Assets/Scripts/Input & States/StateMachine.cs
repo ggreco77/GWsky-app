@@ -11,7 +11,7 @@ public class StateMachine : MonoBehaviour {
 
     List<State> _states = new List<State>();
     const int _states_limit = 20;
-    const int SPHERE_ALIGN_CD = 90;
+    const int SPHERE_ALIGN_CD = 180;
     int sphere_align_count = SPHERE_ALIGN_CD - 1;
 
     State[] states;

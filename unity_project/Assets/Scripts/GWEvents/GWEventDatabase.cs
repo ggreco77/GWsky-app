@@ -43,7 +43,6 @@ public class GWEventDatabase : MonoBehaviour {
 
     void CreateTestEvent_CenterFind()
     {
-
         Directory.CreateDirectory(base_path + "Center_Find");
         Directory.CreateDirectory(base_path + "Center_Find/data");
 
@@ -52,6 +51,19 @@ public class GWEventDatabase : MonoBehaviour {
 
         TextAsset evt_data = Resources.Load("Packets/Center_Find/data") as TextAsset;
         File.WriteAllBytes(base_path + "Center_Find/data/data.txt", evt_data.bytes);
+    }
+
+    void CreateTestEvent_GraphedSky()
+    {
+
+        Directory.CreateDirectory(base_path + "Graphed_Sky");
+        Directory.CreateDirectory(base_path + "Graphed_Sky/data");
+
+        TextAsset image = Resources.Load("Packets/Graphed_Sky/0") as TextAsset;
+        File.WriteAllBytes(base_path + "Graphed_Sky/0.jpg", image.bytes);
+
+        TextAsset evt_data = Resources.Load("Packets/Graphed_Sky/data") as TextAsset;
+        File.WriteAllBytes(base_path + "Graphed_Sky/data/data.txt", evt_data.bytes);
     }
 
     public string[] GetEventNames()
@@ -65,6 +77,7 @@ public class GWEventDatabase : MonoBehaviour {
         {
             CreateTestEvent_GW170814();
             CreateTestEvent_CenterFind();
+            CreateTestEvent_GraphedSky();
 
             names = new List<string>(Directory.GetDirectories(base_path));
         }
