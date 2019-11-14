@@ -11,7 +11,7 @@ public class StateMachine : MonoBehaviour {
 
     List<State> _states = new List<State>();
     const int _states_limit = 20;
-    const int SPHERE_ALIGN_CD = 180;
+    const int SPHERE_ALIGN_CD = 50;
     int sphere_align_count = SPHERE_ALIGN_CD - 1;
 
     State[] states;
@@ -72,6 +72,9 @@ public class StateMachine : MonoBehaviour {
     // Update is called once per frame
     void Update() {
         _master.main_camera.Rotate();
+        _master.sphere_aligner.Rotate();
+        if (_master.main_camera.IsTracking())
+            _master.main_camera.Track();
 
         //IF should be deleted, only for testing
         if (sphere_align_count > 0)

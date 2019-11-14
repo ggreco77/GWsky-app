@@ -8,6 +8,7 @@ using System.Net.Sockets;
         In Unity's case, tasks can only be executed on the main thread whenever they contain any reference to any
         class or variable in UnityEngine (since Unity is not thread-safe), as is in our case. */
 using System.Threading.Tasks;
+using System.Threading;
 
 public class SphereAligner : MonoBehaviour {
     // Minimum number of compass reading before the values can be accepted
@@ -24,7 +25,9 @@ public class SphereAligner : MonoBehaviour {
     // Boolean to keep track of errors while computing sphere alignment
     bool _error = false;
     // Mutex for function which computes sphere alignment
-    bool _lock;
+    int _lock = 1;
+    // Whether to repeat sphere alignment just after completion
+    bool _requeue = false;
 
     // These fields are public since they may be useful for logs or to be shown to the user
     //Universal Time
@@ -173,7 +176,7 @@ public class SphereAligner : MonoBehaviour {
         RelNorth = norths[MathExtension.GetMedian(directions.ToArray()).Item2];
     }
 
-    /*Converts a Vector2 containing (RA, Dec) coordinates in ICRS into a (az, h) Vector2 in local coordinates. */
+    /* Converts a Vector2 containing (RA, Dec) coordinates in ICRS into a (az, h) Vector2 in local coordinates. */
     public async Task<Vector2> ICRSToLocal(Vector2 RA_Dec) {
         az_h = new Vector2(0, 0);
 
@@ -221,39 +224,57 @@ public class SphereAligner : MonoBehaviour {
         return az_h;
     }
 
-    public async void AlignSphere() {
+    async Task AlignSphereInternal() {
+        _requeue = false;
+        int key = System.Threading.Interlocked.Exchange(ref _lock, 0);
         //If function is not executing already...
-        if (!_lock) {
-            //Lock so that another call to the function is not possible. This is safe because Unity can only use its
-            //main thread to execute, so no racing conditions can happen between threads.
-            _lock = true;   //NOTE: THREAD UNSAFE!!!!! FIX!!!!!
+        if (key == 1) {
             //No errors at the beginning of execution.
             _error = false;
 
+            _camera.gameObject.GetComponent<CameraRig>().StartTracking();
             //Compute alignment into a rotation vector.
             Vector2 rotation = await ComputeSphereAlignment();
-
-            //Align sphere based on obtained rotation.
-            ApplySphereAlignment(rotation);
+            if (_camera.gameObject.GetComponent<CameraRig>().StopTracking()) {
+                DebugMessages.Print("Failed to align sphere! Too unstable! " + _camera.gameObject.GetComponent<CameraRig>().trackingLastValue, DebugMessages.Colors.Error);
+                _requeue = true;
+            }
+            else {
+                //Align sphere based on obtained rotation.
+                ApplySphereAlignment(rotation);
+            }
 
             //Allow another call for this function. Return point.
-            _lock = false;
+            _lock = 1;
         }
         else
             //Otherwise, print an error and return without doing anything.
             DebugMessages.Print("Warning! Sphere Alignment was requested again before completion!", DebugMessages.Colors.Warning);
     }
+
+    public async void AlignSphere() {
+        do {
+            await AlignSphereInternal();
+        }
+        while (_requeue);
+    }
+
     //Apply sphere alignment based on a rotation vector.
     public void ApplySphereAlignment(Vector2 rotation) {
-        //Rotate sphere.
-        _sphere.rotation = _camera.rotation;
 
-        _sphere.RotateAround(Vector3.zero, _sphere.up, -RelNorth.z);          // Left-Right
-        _sphere.RotateAround(Vector3.zero, _sphere.right, RelNorth.x);        // Up-Down
-        _sphere.RotateAround(Vector3.zero, _sphere.forward, -RelNorth.y);     // Round
+        Quaternion previous = Globals.SPHERE_DESTINATION.rotation;
 
-        _sphere.RotateAround(Vector3.zero, _sphere.forward, -rotation.y);     // + Altitude
-        _sphere.RotateAround(Vector3.zero, _sphere.up, -rotation.x);          // + Azimuth
+        //Initially, set photosphere rotation to camera orientation
+        Globals.SPHERE_DESTINATION.rotation = _camera.rotation;
+
+        // Rotate ICRS South such that it aligns with local North
+        Globals.SPHERE_DESTINATION.RotateAround(Vector3.zero, Globals.SPHERE_DESTINATION.up, -RelNorth.z);          // Left-Right
+        Globals.SPHERE_DESTINATION.RotateAround(Vector3.zero, Globals.SPHERE_DESTINATION.right, RelNorth.x);        // Up-Down
+        Globals.SPHERE_DESTINATION.RotateAround(Vector3.zero, Globals.SPHERE_DESTINATION.forward, -RelNorth.y);     // Round
+
+        // Rotate photosphere by the computed azimuth and altitude
+        Globals.SPHERE_DESTINATION.RotateAround(Vector3.zero, Globals.SPHERE_DESTINATION.forward, -rotation.y);     // + Altitude
+        Globals.SPHERE_DESTINATION.RotateAround(Vector3.zero, Globals.SPHERE_DESTINATION.up, -rotation.x);          // + Azimuth
     }
     //Compute rotation vector used to align sphere
     public async Task<Vector2> ComputeSphereAlignment() {
@@ -266,16 +287,23 @@ public class SphereAligner : MonoBehaviour {
 
         //Create rotation vector; note that Unity rotation is counterclockwise
         Vector2 rotation = new Vector2(c_az_h.x, c_az_h.y);
+        
+        //Print a bunch of debug info
         DebugMessages.PrintClear("Roll: " + MathExtension.DegRestrict(RelNorth.x));
         DebugMessages.Print("Pitch: " + MathExtension.DegRestrict(RelNorth.z));
         DebugMessages.Print("Yaw: " + MathExtension.DegRestrict(RelNorth.y));
         DebugMessages.Print("UTC Time: " + UTC);
         DebugMessages.Print("GPS: " + GPS.ToString());
-        DebugMessages.Print("(0, 180) point in az-alt coordinates: " + rotation.ToString());
+        DebugMessages.Print("(180, 0) point in az-alt coordinates: " + rotation.ToString());
         DebugMessages.Print("Magnetometer: " + Input.compass.rawVector.ToString());
         DebugMessages.Print("Accelerometer: " + Input.gyro.gravity.ToString());
         DebugMessages.Print("Unity Heading: " + Input.compass.magneticHeading.ToString());
 
         return rotation;
+    }
+
+    public void Rotate()
+    {
+        _sphere.rotation = Quaternion.Slerp(_sphere.rotation, Globals.SPHERE_DESTINATION.rotation, Globals.LERP_ALPHA);
     }
 }
