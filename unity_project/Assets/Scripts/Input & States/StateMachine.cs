@@ -8,6 +8,7 @@ public class StateMachine : MonoBehaviour {
 
     Master _master;
     SphereAligner _sphere_aligner;
+    SphereText _sphere_text;
 
     List<State> _states = new List<State>();
     const int _states_limit = 20;
@@ -16,10 +17,10 @@ public class StateMachine : MonoBehaviour {
 
     State[] states;
 
-    public void Init(Master master, SphereAligner sphere_aligner)
+    public void Init(Master master, SphereText sphere_text)
     {
         _master = master;
-        _sphere_aligner = sphere_aligner;
+        _sphere_text = sphere_text;
 
         // Fill states list with empty states
         for (int i = 0; i < _states_limit; i++)
@@ -73,17 +74,17 @@ public class StateMachine : MonoBehaviour {
     void Update() {
         _master.main_camera.Rotate();
         _master.sphere_aligner.Rotate();
+        _sphere_text.AlignTextsWithSpheres();
+
         if (_master.main_camera.IsTracking())
             _master.main_camera.Track();
 
-        //IF should be deleted, only for testing
         if (sphere_align_count > 0)
             sphere_align_count++;
         if (sphere_align_count == SPHERE_ALIGN_CD) {
             sphere_align_count = 1;
-            _sphere_aligner.AlignSphere();
+            _master.sphere_aligner.AlignSphere();
         }
-
         _states[_states_limit - 1].Update();
     }
 }

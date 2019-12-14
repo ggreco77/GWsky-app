@@ -10,6 +10,7 @@ using System.Net.Sockets;
 using System.Threading.Tasks;
 using System.Threading;
 
+// MAKE IT STATIC!!!
 public class SphereAligner : MonoBehaviour {
     // Minimum number of compass reading before the values can be accepted
     const int MIN_COMPASS_READINGS = 4;
@@ -19,8 +20,16 @@ public class SphereAligner : MonoBehaviour {
 
     // Reference to sphere object in the scene
     Transform _sphere;
+    // Reference to cardinal points sphere object in scene
+    Transform _north_sphere;
+
+    Transform _sphere_destination;
+    Transform _north_sphere_destination;
+
     // Reference to camera object in the scene
     Transform _camera;
+
+    LookUI _look_UI;
 
     // Boolean to keep track of errors while computing sphere alignment
     bool _error = false;
@@ -49,12 +58,24 @@ public class SphereAligner : MonoBehaviour {
     public Vector2 az_h { get; private set; }
 
     //Init function, should be called by Master. Unfortunately Constructors do not work well with Unity, so a Init function has to be called.
-    public void Init(Transform sphere, Transform camera) {
+    public void Init(Transform sphere, Transform north_sphere, Transform camera, LookUI look_UI) {
         // Copy reference to sphere
         _sphere = sphere;
+        _north_sphere = north_sphere;
         _camera = camera;
+        _look_UI = look_UI;
 
         UTC = new DateTime(2000, 1, 1);
+
+        _sphere_destination = new GameObject("Sphere Destination").transform;
+        _sphere_destination.position = _sphere.position;
+        _sphere_destination.rotation = _sphere.rotation;
+        _sphere_destination.localScale = _sphere.localScale;
+
+        _north_sphere_destination = new GameObject("North Sphere Destination").transform;
+        _north_sphere_destination.position = _north_sphere.position;
+        _north_sphere_destination.rotation = _north_sphere.rotation;
+        _north_sphere_destination.localScale = _north_sphere.localScale;
     }
 
     //Contact NIST server and retrieve UTC time. Asynchronous because it has to wait server response.
@@ -261,20 +282,28 @@ public class SphereAligner : MonoBehaviour {
 
     //Apply sphere alignment based on a rotation vector.
     public void ApplySphereAlignment(Vector2 rotation) {
-
-        Quaternion previous = Globals.SPHERE_DESTINATION.rotation;
-
         //Initially, set photosphere rotation to camera orientation
-        Globals.SPHERE_DESTINATION.rotation = _camera.rotation;
-
+        _sphere_destination.rotation = _camera.rotation;
+        _north_sphere_destination.rotation = _camera.rotation;
+        
         // Rotate ICRS South such that it aligns with local North
-        Globals.SPHERE_DESTINATION.RotateAround(Vector3.zero, Globals.SPHERE_DESTINATION.up, -RelNorth.z);          // Left-Right
-        Globals.SPHERE_DESTINATION.RotateAround(Vector3.zero, Globals.SPHERE_DESTINATION.right, RelNorth.x);        // Up-Down
-        Globals.SPHERE_DESTINATION.RotateAround(Vector3.zero, Globals.SPHERE_DESTINATION.forward, -RelNorth.y);     // Round
+        _sphere_destination.RotateAround(Vector3.zero, _sphere_destination.up, -RelNorth.z);          // Left-Right
+        _sphere_destination.RotateAround(Vector3.zero, _sphere_destination.right, RelNorth.x);        // Up-Down
+        _sphere_destination.RotateAround(Vector3.zero, _sphere_destination.forward, -RelNorth.y);    // Round
+        // Rotate Cardinal Points so that they match the local North
+        _north_sphere_destination.RotateAround(Vector3.zero, _north_sphere_destination.up, -RelNorth.z);   // Left-Right
+        _north_sphere_destination.RotateAround(Vector3.zero, _north_sphere_destination.right, RelNorth.x);        // Up-Down
+        _north_sphere_destination.RotateAround(Vector3.zero, _north_sphere_destination.forward, -RelNorth.y);     // Round
 
         // Rotate photosphere by the computed azimuth and altitude
-        Globals.SPHERE_DESTINATION.RotateAround(Vector3.zero, Globals.SPHERE_DESTINATION.forward, -rotation.y);     // + Altitude
-        Globals.SPHERE_DESTINATION.RotateAround(Vector3.zero, Globals.SPHERE_DESTINATION.up, -rotation.x);          // + Azimuth
+        _sphere_destination.RotateAround(Vector3.zero, _sphere_destination.forward, -rotation.y);     // + Altitude
+        _sphere_destination.RotateAround(Vector3.zero, _sphere_destination.up, -rotation.x);          // + Azimuth
+        // Rotate Cardinal Points by 180 to align North
+        _north_sphere_destination.RotateAround(Vector3.zero, _north_sphere_destination.up, 180);          // + Azimuth
+
+        // Signal that first calibration has been finished
+        _look_UI.FirstCalibrationDone();
+
     }
     //Compute rotation vector used to align sphere
     public async Task<Vector2> ComputeSphereAlignment() {
@@ -298,12 +327,14 @@ public class SphereAligner : MonoBehaviour {
         DebugMessages.Print("Magnetometer: " + Input.compass.rawVector.ToString());
         DebugMessages.Print("Accelerometer: " + Input.gyro.gravity.ToString());
         DebugMessages.Print("Unity Heading: " + Input.compass.magneticHeading.ToString());
+        
 
         return rotation;
     }
 
     public void Rotate()
     {
-        _sphere.rotation = Quaternion.Slerp(_sphere.rotation, Globals.SPHERE_DESTINATION.rotation, Globals.LERP_ALPHA);
+        _sphere.rotation = Quaternion.Slerp(_sphere.rotation, _sphere_destination.rotation, Globals.LERP_ALPHA);
+        _north_sphere.rotation = Quaternion.Slerp(_north_sphere.rotation, _north_sphere_destination.rotation, Globals.LERP_ALPHA);
     }
 }

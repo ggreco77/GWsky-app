@@ -193,6 +193,7 @@ public class GWEventDatabase : MonoBehaviour {
         //Return newly created structure
         return new_evt;
     }
+
     public void ApplyEventPhotosphere(Transform sphere, EventData evt, int index)
     {
         if (index >= 0 && index < evt.photospheres.Length)
