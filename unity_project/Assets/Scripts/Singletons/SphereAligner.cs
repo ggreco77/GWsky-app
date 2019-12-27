@@ -236,7 +236,10 @@ public class SphereAligner : MonoBehaviour {
         //Compute altitude and azimuth as per http://star-www.st-and.ac.uk/~fv/webnotes/chapter7.htm.
         float h = (float)Math.Asin(Math.Sin(Dec_rad) * Math.Sin(lat_rad) + Math.Cos(Dec_rad) * Math.Cos(lat_rad) * Math.Cos(LHA_rad));
         float az = (float)Math.Atan2(-Math.Sin(LHA_rad) * Math.Cos(Dec_rad) / Math.Cos(h),
-                                     (Math.Sin(Dec_rad) - Math.Sin(lat_rad) * Math.Sin(h)) / (Math.Cos(Dec_rad) * Math.Cos(h)));
+                                           (Math.Sin(Dec_rad) - Math.Sin(lat_rad) * Math.Sin(h)) / (Math.Cos(Dec_rad) * Math.Cos(h)));
+        // Since az is in range [-180; 180] as per atan2, convert it to range [0; 360]
+        if (az < 0)
+            az += 180;
 
         //Convert back into degrees for convenience
         az_h = new Vector2((float)MathExtension.ToDegrees(az), (float)MathExtension.ToDegrees(h));
@@ -326,8 +329,6 @@ public class SphereAligner : MonoBehaviour {
         DebugMessages.Print("(180, 0) point in az-alt coordinates: " + rotation.ToString());
         DebugMessages.Print("Magnetometer: " + Input.compass.rawVector.ToString());
         DebugMessages.Print("Accelerometer: " + Input.gyro.gravity.ToString());
-        DebugMessages.Print("Unity Heading: " + Input.compass.magneticHeading.ToString());
-        
 
         return rotation;
     }

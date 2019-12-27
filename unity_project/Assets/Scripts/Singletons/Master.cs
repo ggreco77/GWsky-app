@@ -53,13 +53,16 @@ public class Master : MonoBehaviour {
         state_machine.Init(this, sphere_text);
         main_camera.Init();
 
+        //Init Texts for sphere
         sphere_text.Init(GameObject.Find("Main Camera").GetComponent<Camera>());
+        // Add cardinal points
         sphere_text.AddText("North Text", "North", new Vector2(0, 0), north_sphere);
         sphere_text.AddText("South Text", "South", new Vector2(180, 0), north_sphere);
         sphere_text.AddText("East Text", "East", new Vector2(90, 0), north_sphere);
         sphere_text.AddText("West Text", "West", new Vector2(270, 0), north_sphere);
-        sphere_text.AddText("Bottom Text", "Bottom", new Vector2(0, -90), north_sphere);
-        sphere_text.AddText("Top Text", "Top", new Vector2(0, 90), north_sphere);
+        sphere_text.AddText("Bottom Text", "Zenith", new Vector2(0, -90), north_sphere);
+        sphere_text.AddText("Top Text", "Nadir", new Vector2(0, 90), north_sphere);
+
         //Load all event summaries.
         GW_event_db.LoadEventSummaries();
 
