@@ -239,7 +239,7 @@ public class SphereAligner : MonoBehaviour {
                                            (Math.Sin(Dec_rad) - Math.Sin(lat_rad) * Math.Sin(h)) / (Math.Cos(Dec_rad) * Math.Cos(h)));
         // Since az is in range [-180; 180] as per atan2, convert it to range [0; 360]
         if (az < 0)
-            az += 180;
+            az += (float)Math.PI * 2;
 
         //Convert back into degrees for convenience
         az_h = new Vector2((float)MathExtension.ToDegrees(az), (float)MathExtension.ToDegrees(h));
