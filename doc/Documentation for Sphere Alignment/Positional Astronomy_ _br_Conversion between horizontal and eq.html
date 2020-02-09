@@ -1,0 +1,147 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<!-- saved from url=(0054)http://star-www.st-and.ac.uk/~fv/webnotes/chapter7.htm -->
+<html class="gr__star-st-and_ac_uk"><head><meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+	
+	<title> Positional Astronomy: &lt;br&gt;Conversion between horizontal and eq</title>
+	<meta name="GENERATOR" content="StarOffice/5.2 (Win32)">
+	<meta name="CREATED" content="20031115;20443214">
+	<meta name="CHANGEDBY" content="Fiona Vincent">
+	<meta name="CHANGED" content="20031123;10012528">
+	<style>
+	<!--
+		H1 { color: #000000 }
+		TD P { color: #000000 }
+		P { color: #000000 }
+		A:link { color: #0f0fff }
+		A:visited { color: #ff0f0f }
+	-->
+	</style>
+</head>
+<body text="#000000" link="#0f0fff" vlink="#ff0f0f" bgcolor="#ffffff" data-gr-c-s-loaded="true">
+<h1><font size="5">Positional Astronomy: <br></font><font size="4">Conversion
+between horizontal and equatorial systems</font></h1>
+
+<p><font size="3"><b>{Note:</b> If your browser does not distinguish
+between "a,b" and "&#945;, &#946;" (the Greek letters 
+"<i>alpha, beta</i>")
+then I am afraid you will not be able to make much sense of the
+equations on this page.}
+
+
+</font></p><p><font size="3"><font size="4">To convert between the horizontal and equatorial
+coordinates for an object X, <br>we use a spherical triangle often
+called <i>"The" Astronomical Triangle</i>: XPZ, <br>where Z
+is the zenith, P is the North Celestial Pole, and X is the object. </font>
+</font></p><font size="3">
+<p><font size="4">The sides of the triangle:<br>&nbsp;&nbsp;&nbsp;PZ&nbsp;is
+the observer's co-latitude = 90°-&#966;.<br>&nbsp;&nbsp;&nbsp;ZX
+is the zenith distance of X = 90°-a.<br>&nbsp;&nbsp;&nbsp;PX is
+the North Polar Distance of X = 90°-&#948;.</font></p>
+<p><font size="4">The angles of the triangle:<br>&nbsp;&nbsp;&nbsp;The
+angle at P is H, the local Hour Angle of X.<br>&nbsp;&nbsp;&nbsp;The
+angle at Z is 360°-A, where A is the azimuth of X.<br>&nbsp;&nbsp;&nbsp;The
+angle at X is q, the <b>parallactic angle</b>.</font></p>
+<p><font size="4">We assume we know the observer’s latitude &#966;
+and the Local Sidereal Time LST.<br>(LST may be obtained, if
+necessary, from Greenwich Sidereal Time and observer’s
+longitude.) </font>
+</p>
+<p><img src="./Positional Astronomy_ _br_Conversion between horizontal and eq_files/triangle.gif" name="Graphic1" alt="diagram" align="bottom" width="557" height="389" border="0"><font size="4"></font></p><font size="4">
+</font><p><font size="4"><font color="#b84700"><b>To
+convert from equatorial to horizontal coordinates</b>:</font></font></p>
+<p><font size="4">Given RA &#945; and
+declination &#948;, we have <br>Local
+Hour Angle H = LST - RA, in hours; <br>convert H to degrees (multiply
+by 15). <br>Given H and &#948;, we
+require azimuth A and altitude a.</font></p>
+
+<p><font size="4">By the cosine rule:<br>cos(90°-a) = cos(90°-&#948;)
+cos(90°-&#966;) + sin(90°-&#948;)
+sin(90°-&#966;) cos(H)<br>which
+simplifies to:<br><b>sin(a) = sin(&#948;)
+sin(&#966;) + cos(&#948;)
+cos(&#966;) cos(H)</b><br>This gives us
+the altitude a.</font></p>
+
+<p><font size="4">By the sine rule: <br>sin(360°-A)/sin(90°-&#948;)
+= sin(H)/sin(90°-a)<br>which simplifies to:<br>- sin(A)/cos(&#948;)
+= sin(H)/cos(a)<br><i>i.e. </i><b>sin(A) = - sin(H) cos(&#948;)
+/ cos(a)</b><span style="font-weight: medium"><br>which gives us the
+azimuth A.</span></font></p>
+
+<p><font size="4">Alternatively, use the cosine rule again:<br>cos(90°-&#948;)
+= cos(90°-&#966;) cos(90°-a) +
+sin(90°-&#966;) sin(90°-a)
+cos(360°-A)<br>which simplifies to <br>sin(&#948;)
+= sin(&#966;) sin(a) + cos(&#966;)
+cos(a) cos(A)<br>Rearrange to find A: <br><b>cos(A) = { sin(&#948;)
+- sin(&#966;) sin(a) } / cos(&#966;)
+cos(a)<br></b><span style="font-weight: medium">which again gives us
+the azimuth A.</span></font></p>
+
+<p style="border: 1px solid #eb613d; padding: 0.05cm"><font size="4"><span style="font-weight: medium">Here
+are all the equations together:<br><b><font color="#b84700">H = t -
+&#945;</font></b><br><font color="#b84700"><b>sin(a)
+= sin(&#948;) sin(&#966;)
++ cos(&#948;) cos(&#966;)
+cos(H)</b></font></span><font color="#b84700"><b><br>sin(A) = -
+sin(H) cos(&#948;) / cos(a)<br>cos(A) =
+{ sin(&#948;) - sin(&#966;)
+sin(a) } / cos(&#966;) cos(a)</b></font></font></p>
+<p><br><br>
+</p>
+
+<p><font size="4">Now for the inverse problem:<br><b><font color="#b84700">to
+convert from horizontal to equatorial coordinates:</font></b></font></p>
+
+<p><font size="4">Given &#966;, a and A,
+what are &#945; and &#948;?</font></p>
+
+<p><font size="4">Start by using the cosine rule to get &#948;,
+as shown above: <br><b>sin(&#948;) =
+sin(a)sin(&#966;) + cos(a) cos(&#966;)
+cos(A)</b></font></p>
+
+<p><font size="4">We can now use the sine rule to get H, using the same
+formula as above: <br><b>sin(H) = - sin(A) cos(a) / cos(&#948;)
+</b><br>Or use the cosine rule instead: <br>sin(a) = sin(&#948;)sin(&#966;)
++ cos(&#948;) cos(&#966;)
+cos(H)<br>and rearrange to find H: <br><b>cos(H) = { sin(a) - sin(&#948;)
+sin(&#966;) } / cos(&#948;)
+cos(&#966;)</b></font></p>
+
+<p><font size="4">Having calculated H, ascertain the Local Sidereal
+Time t. 
+<br>Then the R.A. follows from <br>&nbsp;<b>&#945;
+= t – H </b><span style="font-weight: medium">.</span></font></p>
+
+<p style="border: 1px solid #b84700; padding: 0.05cm; font-weight: medium">
+<font size="4">Here are all the equations together:
+<br><b><font color="#b84700">sin(&#948;)
+= sin(a)sin(&#966;) + cos(a) cos(&#966;) cos(A)
+<br>sin(H) = - sin(A) cos(a) / cos(&#948;)
+<br>cos(H) = { sin(a) - sin(&#948;) sin(&#966;)} / cos(&#948;) cos(&#966;)
+<br>&#945; = t – H</font></b></font></p>
+<p><br><br>
+</p>
+
+<p><font color="#800000"><font size="4" style="font-size: 16pt"><b>Exercise:</b></font></font></p>
+<p><font color="#800000"><font size="4">Prove that the celestial
+equator cuts the horizon at azimuth 90° and 270°, <br>at any
+latitude (except at the North and South Poles). </font></font>
+</p>
+<p><font color="#800000"><font size="4">At what <i>angle </i>does the
+celestial equator cut the horizon, at latitude &#966;
+?</font></font></p>
+<p><font size="4"><font color="#800000">Click <a href="http://star-www.st-and.ac.uk/~fv/webnotes/answer7.htm">here</a>
+for the answer.</font></font></p>
+<p><br><br>
+</p>
+<p><span style="font-weight: medium"><font size="4">Previous section:
+<a href="http://star-www.st-and.ac.uk/~fv/webnotes/chapter6.htm"><font size="4">Sidereal time</font></a> <br>Next
+section: <a href="http://star-www.st-and.ac.uk/~fv/webnotes/chapter8.htm">Galactic coordinates</a> <br>Return
+to <a href="http://star-www.st-and.ac.uk/~fv/webnotes/index.html">index</a> </font></span>
+</p>
+
+
+</font></body></html>

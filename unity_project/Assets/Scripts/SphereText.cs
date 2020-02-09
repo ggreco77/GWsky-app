@@ -43,18 +43,8 @@ public class SphereText : MonoBehaviour
         foreach (KeyValuePair<string, Text> pair in _texts)
         {
             Text text = pair.Value;
-            float az = (float)MathExtension.ToRadians(text.pos.y);
-            float h = (float)MathExtension.ToRadians(text.pos.x);
-            // Get point position on the sphere as cartesian coordinates
-            Vector3 sphere_pos = TEXTSPHERE_RADIUS * new Vector3(Mathf.Cos(-h + Mathf.PI/2),
-                                                                 -Mathf.Sin(-h + Mathf.PI/2) * Mathf.Sin(az),
-                                                                 -Mathf.Sin(-h + Mathf.PI/2) * Mathf.Cos(az));
-            // Make an initial orientation for lineup
-            sphere_pos = Quaternion.Euler(0, 90, 0) * sphere_pos;
-            sphere_pos = Quaternion.Euler(-90, 0, 0) * sphere_pos;
-            sphere_pos = Quaternion.Euler(0, 0, 180) * sphere_pos;
-            // Rotate points as per sphere orientation
-            sphere_pos = text.followed_sphere.rotation * sphere_pos;
+            Vector3 sphere_pos = SOFConverter.EquirectangularToSphere(text.pos, TEXTSPHERE_RADIUS, text.followed_sphere);
+
             // Project point onto camera canvas screen
             Vector3 screen_pos = _camera.WorldToScreenPoint(sphere_pos);
             if (screen_pos.z >= 0)

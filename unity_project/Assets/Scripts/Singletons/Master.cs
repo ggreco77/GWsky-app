@@ -56,10 +56,15 @@ public class Master : MonoBehaviour {
         sphere_text.Init(GameObject.Find("Main Camera").GetComponent<Camera>());
         sphere_text.AddText("North Text", "North", new Vector2(0, 0), north_sphere);
         sphere_text.AddText("South Text", "South", new Vector2(180, 0), north_sphere);
-        sphere_text.AddText("East Text", "East", new Vector2(90, 0), north_sphere);
-        sphere_text.AddText("West Text", "West", new Vector2(270, 0), north_sphere);
+        sphere_text.AddText("East Text", "East", new Vector2(270, 0), north_sphere);
+        sphere_text.AddText("West Text", "West", new Vector2(90, 0), north_sphere);
         sphere_text.AddText("Bottom Text", "Nadir", new Vector2(0, -90), north_sphere);
         sphere_text.AddText("Top Text", "Zenith", new Vector2(0, 90), north_sphere);
+        sphere_text.AddText("Betelgeuse", "Betelgeuse", new Vector2(88.7916666f, 7.4072222f), sphere);
+        sphere_text.AddText("Arcturus", "Arcturus", new Vector2(213.7791666f, 19.1822222f), sphere);
+        sphere_text.AddText("PS", "PS", new Vector2(0, -90), sphere);
+        sphere_text.AddText("PN", "PN", new Vector2(0, 90), sphere);
+
         //Load all event summaries.
         GW_event_db.LoadEventSummaries();
 

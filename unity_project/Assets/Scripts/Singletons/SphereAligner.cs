@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using System;
 using System.IO;
@@ -17,6 +18,11 @@ public class SphereAligner : MonoBehaviour {
     const int MAX_COMPASS_READINGS = 12;
 
     const int MIN_COMPASS_ACCURACY = 2; // degrees
+
+    const float SPHERE_RADIUS = 10f;
+
+    Vector2 p_a = new Vector2(213.7791666f, 19.1822222f);
+    Vector2 p_b = new Vector2(88.7916666f, 7.4072222f);
 
     // Reference to sphere object in the scene
     Transform _sphere;
@@ -258,7 +264,7 @@ public class SphereAligner : MonoBehaviour {
 
             _camera.gameObject.GetComponent<CameraRig>().StartTracking();
             //Compute alignment into a rotation vector.
-            Vector2 rotation = await ComputeSphereAlignment();
+            Vector3 rotation = await ComputeSphereAlignment();
             if (_camera.gameObject.GetComponent<CameraRig>().StopTracking()) {
                 DebugMessages.Print("Failed to align sphere! Too unstable! " + _camera.gameObject.GetComponent<CameraRig>().trackingLastValue, DebugMessages.Colors.Error);
                 _requeue = true;
@@ -284,54 +290,65 @@ public class SphereAligner : MonoBehaviour {
     }
 
     //Apply sphere alignment based on a rotation vector.
-    public void ApplySphereAlignment(Vector2 rotation) {
+    public void ApplySphereAlignment(Vector3 rotation) {
         //Initially, set photosphere rotation to camera orientation
         _sphere_destination.rotation = _camera.rotation;
         _north_sphere_destination.rotation = _camera.rotation;
-        
-        // Rotate ICRS South such that it aligns with local North
-        _sphere_destination.RotateAround(Vector3.zero, _sphere_destination.up, -RelNorth.z);          // Left-Right
-        _sphere_destination.RotateAround(Vector3.zero, _sphere_destination.right, RelNorth.x);        // Up-Down
+
+        // Rotate ICRS North such that it aligns with local North
+        _sphere_destination.RotateAround(Vector3.zero, _sphere_destination.up, -RelNorth.z);         // Left-Right
+        _sphere_destination.RotateAround(Vector3.zero, _sphere_destination.right, RelNorth.x);       // Up-Down
         _sphere_destination.RotateAround(Vector3.zero, _sphere_destination.forward, -RelNorth.y);    // Round
+        _sphere_destination.RotateAround(Vector3.zero, _sphere_destination.forward, 180);            // North Alignment
         // Rotate Cardinal Points so that they match the local North
-        _north_sphere_destination.RotateAround(Vector3.zero, _north_sphere_destination.up, -RelNorth.z);   // Left-Right
+        _north_sphere_destination.RotateAround(Vector3.zero, _north_sphere_destination.up, -RelNorth.z);          // Left-Right
         _north_sphere_destination.RotateAround(Vector3.zero, _north_sphere_destination.right, RelNorth.x);        // Up-Down
         _north_sphere_destination.RotateAround(Vector3.zero, _north_sphere_destination.forward, -RelNorth.y);     // Round
+        _north_sphere_destination.RotateAround(Vector3.zero, _north_sphere_destination.forward, 180);             // North Alignment
 
         // Rotate photosphere by the computed azimuth and altitude
-        _sphere_destination.RotateAround(Vector3.zero, _sphere_destination.forward, -rotation.y);     // + Altitude
-        _sphere_destination.RotateAround(Vector3.zero, _sphere_destination.up, -rotation.x);          // + Azimuth
-        // Rotate Cardinal Points by 180 to align North
-        _north_sphere_destination.RotateAround(Vector3.zero, _north_sphere_destination.up, 180);          // + Azimuth
-
+        _sphere_destination.RotateAround(Vector3.zero, _sphere_destination.up, -p_a.y + rotation.y);         // + Altitude
+        _sphere_destination.RotateAround(Vector3.zero, _sphere_destination.forward, -p_a.x - rotation.x);     // + Azimuth
+        _sphere_destination.RotateAround(Vector3.zero,
+                                         SOFConverter.EquirectangularToSphere(new Vector2(rotation.x, rotation.y), SPHERE_RADIUS, _sphere_destination),
+                                         rotation.z);   // Second point fix
+        
         // Signal that first calibration has been finished
         _look_UI.FirstCalibrationDone();
 
     }
     //Compute rotation vector used to align sphere
-    public async Task<Vector2> ComputeSphereAlignment() {
-        // Center point of photosphere, used as a reference.
-        float c_RA = 180;
-        float c_Dec = 0;
+    public async Task<Vector3> ComputeSphereAlignment() {
+        //Compute local coordinates for both reference points
+        Vector2 a_az_h = await ICRSToLocal(new Vector2(p_a.x, p_a.y));
+        Vector2 b_az_h = await ICRSToLocal(new Vector2(p_b.x, p_b.y));
 
-        //Compute local coordinates for our center point
-        Vector2 c_az_h = await ICRSToLocal(new Vector2(c_RA, c_Dec));
+        //Find relative angle (angle between 2 3D lines)
+        Vector3 a = SOFConverter.EquirectangularToSphere(a_az_h, SPHERE_RADIUS, _sphere_destination);
+        Vector3 b = SOFConverter.EquirectangularToSphere(p_b + (a_az_h - p_a), SPHERE_RADIUS, _sphere_destination);
+        Vector3 c = SOFConverter.EquirectangularToSphere(b_az_h, SPHERE_RADIUS, _sphere_destination);
 
-        //Create rotation vector; note that Unity rotation is counterclockwise
-        Vector2 rotation = new Vector2(c_az_h.x, c_az_h.y);
+        Vector3 u = b - a;
+        Vector3 v = c - a;
+
+        Vector3 axis = SOFConverter.EquirectangularToSphere(a_az_h, SPHERE_RADIUS, _sphere_destination).normalized;
+        float dot = Vector3.Dot(u, v);
+        float det = u.x*v.y*axis.z + v.x*axis.y*u.z + axis.x*u.y*v.z - u.z*v.y*axis.x - v.z*axis.y*u.x - axis.z*u.y*v.x;
+        float rot_angle = Mathf.Atan2(det, dot);
+
+        //Create rotation vector
+        Vector3 rotation = new Vector3(a_az_h.x, a_az_h.y, (float)MathExtension.ToDegrees(rot_angle));
+        //Vector3 rotation = new Vector3(a_az_h.x, a_az_h.y, debug_i);
+        //debug_i = debug_i + 10;
         
         //Print a bunch of debug info
         DebugMessages.PrintClear("Roll: " + MathExtension.DegRestrict(RelNorth.x));
         DebugMessages.Print("Pitch: " + MathExtension.DegRestrict(RelNorth.z));
         DebugMessages.Print("Yaw: " + MathExtension.DegRestrict(RelNorth.y));
-        DebugMessages.Print("UTC Time: " + UTC);
-        DebugMessages.Print("GPS: " + GPS.ToString());
-        DebugMessages.Print("(180, 0) point in az-alt coordinates: " + rotation.ToString());
+        DebugMessages.Print("Rotation: " + rotation.ToString());
         DebugMessages.Print("Magnetometer: " + Input.compass.rawVector.ToString());
         DebugMessages.Print("Accelerometer: " + Input.gyro.gravity.ToString());
-        DebugMessages.Print("Unity Heading: " + Input.compass.magneticHeading.ToString());
         
-
         return rotation;
     }
 
