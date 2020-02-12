@@ -1,5 +1,3 @@
-﻿using System.Collections;
-using System.Collections.Generic;
 ﻿using System.Collections.Generic;
 using UnityEngine;
 using System;
@@ -9,7 +7,6 @@ using System.Net.Sockets;
         In Unity's case, tasks can only be executed on the main thread whenever they contain any reference to any
         class or variable in UnityEngine (since Unity is not thread-safe), as is in our case. */
 using System.Threading.Tasks;
-using System.Threading;
 
 // MAKE IT STATIC!!!
 public class SphereAligner : MonoBehaviour {
@@ -231,7 +228,7 @@ public class SphereAligner : MonoBehaviour {
 
         //Local Hour Angle, obtained from LST and RA. Conversion is done by multiplying by 15. Value in hours is
         //preemptively reduced to range 0h - 24h.
-        LHA = ((LST.TotalHours - RA_Dec.x + 24) % 24) * 15;
+        LHA = ((LST.TotalHours - (RA_Dec.x / 15) + 24) % 24) * 15;
 
         //Compute and Convert necessary angles in radians: Math library functions work with angles in radians,
         //so conversion is necessary.
@@ -294,7 +291,7 @@ public class SphereAligner : MonoBehaviour {
         //Initially, set photosphere rotation to camera orientation
         _sphere_destination.rotation = _camera.rotation;
         _north_sphere_destination.rotation = _camera.rotation;
-
+        
         // Rotate ICRS North such that it aligns with local North
         _sphere_destination.RotateAround(Vector3.zero, _sphere_destination.up, -RelNorth.z);         // Left-Right
         _sphere_destination.RotateAround(Vector3.zero, _sphere_destination.right, RelNorth.x);       // Up-Down
@@ -306,11 +303,15 @@ public class SphereAligner : MonoBehaviour {
         _north_sphere_destination.RotateAround(Vector3.zero, _north_sphere_destination.forward, -RelNorth.y);     // Round
         _north_sphere_destination.RotateAround(Vector3.zero, _north_sphere_destination.forward, 180);             // North Alignment
 
+        _sphere_destination.RotateAround(Vector3.zero, _sphere_destination.up, -p_a.y);         // + Altitude
+        _sphere_destination.RotateAround(Vector3.zero, _sphere_destination.forward, -p_a.x);     // + Azimuth
         // Rotate photosphere by the computed azimuth and altitude
-        _sphere_destination.RotateAround(Vector3.zero, _sphere_destination.up, -p_a.y + rotation.y);         // + Altitude
-        _sphere_destination.RotateAround(Vector3.zero, _sphere_destination.forward, -p_a.x - rotation.x);     // + Azimuth
+        _sphere_destination.RotateAround(Vector3.zero, SOFConverter.EquirectangularToAbsoluteSphere(new Vector2(0, 90), SPHERE_RADIUS),
+                                         rotation.x);     // + Azimuth
+        _sphere_destination.RotateAround(Vector3.zero, SOFConverter.EquirectangularToAbsoluteSphere(new Vector2(180, 0), SPHERE_RADIUS),
+                                         rotation.y);     // + Altitude
         _sphere_destination.RotateAround(Vector3.zero,
-                                         SOFConverter.EquirectangularToSphere(new Vector2(rotation.x, rotation.y), SPHERE_RADIUS, _sphere_destination),
+                                         SOFConverter.EquirectangularToSphere(new Vector2(p_a.x, p_a.y), SPHERE_RADIUS, _sphere_destination),
                                          rotation.z);   // Second point fix
         
         // Signal that first calibration has been finished
@@ -338,9 +339,7 @@ public class SphereAligner : MonoBehaviour {
 
         //Create rotation vector
         Vector3 rotation = new Vector3(a_az_h.x, a_az_h.y, (float)MathExtension.ToDegrees(rot_angle));
-        //Vector3 rotation = new Vector3(a_az_h.x, a_az_h.y, debug_i);
-        //debug_i = debug_i + 10;
-        
+
         //Print a bunch of debug info
         DebugMessages.PrintClear("Roll: " + MathExtension.DegRestrict(RelNorth.x));
         DebugMessages.Print("Pitch: " + MathExtension.DegRestrict(RelNorth.z));

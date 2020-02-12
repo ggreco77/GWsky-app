@@ -55,7 +55,6 @@ public class GWEventDatabase : MonoBehaviour {
 
     void CreateTestEvent_GraphedSky()
     {
-
         Directory.CreateDirectory(base_path + "Graphed_Sky");
         Directory.CreateDirectory(base_path + "Graphed_Sky/data");
 
