@@ -82,7 +82,7 @@ public class Master : MonoBehaviour {
     {
         selection_canvas.enabled = false;
         look_UI.canvas.enabled = false;
-        sphere_text.enabled = false;
+        sphere_text.gameObject.GetComponent<Canvas>().enabled = false;
         BG_canvas.enabled = false;
         mainmenu_canvas.enabled = false;
         options_canvas.enabled = false;

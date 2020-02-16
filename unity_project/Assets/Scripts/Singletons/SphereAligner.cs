@@ -18,8 +18,8 @@ public class SphereAligner : MonoBehaviour {
 
     const float SPHERE_RADIUS = 10f;
 
-    Vector2 p_a = new Vector2(213.7791666f, 19.1822222f);
-    Vector2 p_b = new Vector2(88.7916666f, 7.4072222f);
+    Vector2 p_a = new Vector2(0, 90);
+    Vector2 p_b = new Vector2(0.001f, 89.999f);
 
     // Reference to sphere object in the scene
     Transform _sphere;
@@ -238,14 +238,27 @@ public class SphereAligner : MonoBehaviour {
 
         //Compute altitude and azimuth as per http://star-www.st-and.ac.uk/~fv/webnotes/chapter7.htm.
         float h = (float)Math.Asin(Math.Sin(Dec_rad) * Math.Sin(lat_rad) + Math.Cos(Dec_rad) * Math.Cos(lat_rad) * Math.Cos(LHA_rad));
-        float az = (float)Math.Atan2(-Math.Sin(LHA_rad) * Math.Cos(Dec_rad) / Math.Cos(h),
-                                    (Math.Sin(Dec_rad) - Math.Sin(lat_rad) * Math.Sin(h)) / (Math.Cos(Dec_rad) * Math.Cos(h)));
+        float az;
+        try {
+            az = (float)Math.Atan2(-Math.Sin(LHA_rad) * Math.Cos(Dec_rad) / Math.Cos(h),
+                                   (Math.Sin(Dec_rad) - Math.Sin(lat_rad) * Math.Sin(h)) / (Math.Cos(lat_rad) * Math.Cos(h)));
+            } catch (DivideByZeroException) {
+            az = 0;
+        }
+
         // Since az is in range [-180; 180] as per atan2, convert it to range [0; 360]
         if (az < 0)
             az += (float)Math.PI * 2;
 
         //Convert back into degrees for convenience
         az_h = new Vector2((float)MathExtension.ToDegrees(az), (float)MathExtension.ToDegrees(h));
+
+        /*
+        DebugMessages.Print("LHA: " + LHA);
+        DebugMessages.Print("Dec: " + RA_Dec.y);
+        DebugMessages.Print("lat: " + GPS.x);
+        DebugMessages.Print("h: " + MathExtension.ToDegrees(h));
+        */
 
         //Return converted coordinates.
         return az_h;
@@ -261,14 +274,14 @@ public class SphereAligner : MonoBehaviour {
 
             _camera.gameObject.GetComponent<CameraRig>().StartTracking();
             //Compute alignment into a rotation vector.
-            Vector3 rotation = await ComputeSphereAlignment();
+            Tuple<Vector2, Vector2> local_coords = await ComputeSphereAlignment();
             if (_camera.gameObject.GetComponent<CameraRig>().StopTracking()) {
                 DebugMessages.Print("Failed to align sphere! Too unstable! " + _camera.gameObject.GetComponent<CameraRig>().trackingLastValue, DebugMessages.Colors.Error);
                 _requeue = true;
             }
             else {
                 //Align sphere based on obtained rotation.
-                ApplySphereAlignment(rotation);
+                ApplySphereAlignment(local_coords);
             }
 
             //Allow another call for this function. Return point.
@@ -287,68 +300,83 @@ public class SphereAligner : MonoBehaviour {
     }
 
     //Apply sphere alignment based on a rotation vector.
-    public void ApplySphereAlignment(Vector3 rotation) {
+    public void ApplySphereAlignment(Tuple<Vector2, Vector2> local_coords) {
+        GameObject sphere_bGO = new GameObject("Sphere B");
+        Transform sphere_b = sphere_bGO.transform;
+        sphere_b.position = _sphere_destination.position;
+        sphere_b.localScale = _sphere_destination.localScale;
+
+        Vector2 a_az_h = local_coords.Item1;
+        Vector2 b_az_h = local_coords.Item2;
+
         //Initially, set photosphere rotation to camera orientation
         _sphere_destination.rotation = _camera.rotation;
-        _north_sphere_destination.rotation = _camera.rotation;
-        
+
         // Rotate ICRS North such that it aligns with local North
         _sphere_destination.RotateAround(Vector3.zero, _sphere_destination.up, -RelNorth.z);         // Left-Right
         _sphere_destination.RotateAround(Vector3.zero, _sphere_destination.right, RelNorth.x);       // Up-Down
         _sphere_destination.RotateAround(Vector3.zero, _sphere_destination.forward, -RelNorth.y);    // Round
         _sphere_destination.RotateAround(Vector3.zero, _sphere_destination.forward, 180);            // North Alignment
         // Rotate Cardinal Points so that they match the local North
-        _north_sphere_destination.RotateAround(Vector3.zero, _north_sphere_destination.up, -RelNorth.z);          // Left-Right
-        _north_sphere_destination.RotateAround(Vector3.zero, _north_sphere_destination.right, RelNorth.x);        // Up-Down
-        _north_sphere_destination.RotateAround(Vector3.zero, _north_sphere_destination.forward, -RelNorth.y);     // Round
-        _north_sphere_destination.RotateAround(Vector3.zero, _north_sphere_destination.forward, 180);             // North Alignment
+        _north_sphere_destination.rotation = _sphere_destination.rotation;
+        sphere_b.rotation = _sphere_destination.rotation;
 
         _sphere_destination.RotateAround(Vector3.zero, _sphere_destination.up, -p_a.y);         // + Altitude
         _sphere_destination.RotateAround(Vector3.zero, _sphere_destination.forward, -p_a.x);     // + Azimuth
         // Rotate photosphere by the computed azimuth and altitude
         _sphere_destination.RotateAround(Vector3.zero, SOFConverter.EquirectangularToAbsoluteSphere(new Vector2(0, 90), SPHERE_RADIUS),
-                                         rotation.x);     // + Azimuth
+                                         a_az_h.x);     // + Azimuth
         _sphere_destination.RotateAround(Vector3.zero, SOFConverter.EquirectangularToAbsoluteSphere(new Vector2(180, 0), SPHERE_RADIUS),
-                                         rotation.y);     // + Altitude
-        _sphere_destination.RotateAround(Vector3.zero,
-                                         SOFConverter.EquirectangularToSphere(new Vector2(p_a.x, p_a.y), SPHERE_RADIUS, _sphere_destination),
-                                         rotation.z);   // Second point fix
+                                         a_az_h.y);     // + Altitude
         
-        // Signal that first calibration has been finished
-        _look_UI.FirstCalibrationDone();
-
-    }
-    //Compute rotation vector used to align sphere
-    public async Task<Vector3> ComputeSphereAlignment() {
-        //Compute local coordinates for both reference points
-        Vector2 a_az_h = await ICRSToLocal(new Vector2(p_a.x, p_a.y));
-        Vector2 b_az_h = await ICRSToLocal(new Vector2(p_b.x, p_b.y));
-
+        sphere_b.RotateAround(Vector3.zero, sphere_b.up, -p_b.y);         // + Altitude
+        sphere_b.RotateAround(Vector3.zero, sphere_b.forward, -p_b.x);     // + Azimuth
+        // Rotate photosphere by the computed azimuth and altitude
+        sphere_b.RotateAround(Vector3.zero, SOFConverter.EquirectangularToAbsoluteSphere(new Vector2(0, 90), SPHERE_RADIUS),
+                              b_az_h.x);     // + Azimuth
+        sphere_b.RotateAround(Vector3.zero, SOFConverter.EquirectangularToAbsoluteSphere(new Vector2(180, 0), SPHERE_RADIUS),
+                              b_az_h.y);     // + Altitude
+        
         //Find relative angle (angle between 2 3D lines)
-        Vector3 a = SOFConverter.EquirectangularToSphere(a_az_h, SPHERE_RADIUS, _sphere_destination);
-        Vector3 b = SOFConverter.EquirectangularToSphere(p_b + (a_az_h - p_a), SPHERE_RADIUS, _sphere_destination);
-        Vector3 c = SOFConverter.EquirectangularToSphere(b_az_h, SPHERE_RADIUS, _sphere_destination);
+        Vector3 a = SOFConverter.EquirectangularToSphere(p_a, SPHERE_RADIUS, _sphere_destination);
+        Vector3 b = SOFConverter.EquirectangularToSphere(p_b, SPHERE_RADIUS, _sphere_destination);
+        Vector3 c = SOFConverter.EquirectangularToSphere(p_b, SPHERE_RADIUS, sphere_b);
 
         Vector3 u = b - a;
         Vector3 v = c - a;
 
-        Vector3 axis = SOFConverter.EquirectangularToSphere(a_az_h, SPHERE_RADIUS, _sphere_destination).normalized;
+        Vector3 axis = a.normalized;
+        // From https://stackoverflow.com/questions/14066933/direct-way-of-computing-clockwise-angle-between-2-vectors
         float dot = Vector3.Dot(u, v);
-        float det = u.x*v.y*axis.z + v.x*axis.y*u.z + axis.x*u.y*v.z - u.z*v.y*axis.x - v.z*axis.y*u.x - axis.z*u.y*v.x;
-        float rot_angle = Mathf.Atan2(det, dot);
-
-        //Create rotation vector
-        Vector3 rotation = new Vector3(a_az_h.x, a_az_h.y, (float)MathExtension.ToDegrees(rot_angle));
+        float det = Vector3.Dot(axis, Vector3.Cross(u, v));
+        float rot_angle = (float)MathExtension.ToDegrees(Mathf.Atan2(det, dot));
+        
+        _sphere_destination.RotateAround(Vector3.zero,
+                                         SOFConverter.EquirectangularToSphere(p_a, SPHERE_RADIUS, _sphere_destination),
+                                         rot_angle);   // Second point fix
+        
+        // Signal that first calibration has been finished
+        _look_UI.FirstCalibrationDone();
 
         //Print a bunch of debug info
         DebugMessages.PrintClear("Roll: " + MathExtension.DegRestrict(RelNorth.x));
         DebugMessages.Print("Pitch: " + MathExtension.DegRestrict(RelNorth.z));
         DebugMessages.Print("Yaw: " + MathExtension.DegRestrict(RelNorth.y));
-        DebugMessages.Print("Rotation: " + rotation.ToString());
+        DebugMessages.Print("Ref Points: " + a_az_h.ToString() + ", " + b_az_h.ToString());
+        DebugMessages.Print("Rotation: " + new Vector3(a_az_h.x, a_az_h.y, rot_angle).ToString());
         DebugMessages.Print("Magnetometer: " + Input.compass.rawVector.ToString());
         DebugMessages.Print("Accelerometer: " + Input.gyro.gravity.ToString());
+
+        Destroy(sphere_bGO);
+    }
+
+    //Compute rotation vector used to align sphere
+    public async Task<Tuple<Vector2, Vector2>> ComputeSphereAlignment() {
+        //Compute local coordinates for both reference points
+        Vector2 a_az_h = await ICRSToLocal(new Vector2(p_a.x, p_a.y));
+        Vector2 b_az_h = await ICRSToLocal(new Vector2(p_b.x, p_b.y));
         
-        return rotation;
+        return new Tuple<Vector2, Vector2>(a_az_h, b_az_h);
     }
 
     public void Rotate()
@@ -356,4 +384,6 @@ public class SphereAligner : MonoBehaviour {
         _sphere.rotation = Quaternion.Slerp(_sphere.rotation, _sphere_destination.rotation, Globals.LERP_ALPHA);
         _north_sphere.rotation = Quaternion.Slerp(_north_sphere.rotation, _north_sphere_destination.rotation, Globals.LERP_ALPHA);
     }
+
+
 }

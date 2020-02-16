@@ -14,11 +14,12 @@ public class State_LookAround : State {
     public override void Enter()
     {
         master.look_UI.telescope_button.gameObject.transform.parent.GetComponent<Canvas>().enabled = true;
-
+        master.sphere_text.gameObject.GetComponent<Canvas>().enabled = true;
     }
 
     public override void Exit()
     {
         master.look_UI.telescope_button.gameObject.transform.parent.GetComponent<Canvas>().enabled = false;
+        master.sphere_text.gameObject.GetComponent<Canvas>().enabled = false;
     }
 }
