@@ -16,6 +16,7 @@ public class BackgroundMovingSphere : MonoBehaviour {
     public bool Preparing { get; private set; } = false;
     public bool Ready { get; private set; } = false;
     public bool Skip { get; private set; } = false;
+    public bool SkipReady { get; private set; } = true;
 
     public void Init(Image video_cover) {
         _video_cover = video_cover;
@@ -26,6 +27,7 @@ public class BackgroundMovingSphere : MonoBehaviour {
 
     void OnError(VideoPlayer source, string message) {
         Skip = true;
+        SkipReady = true;
         Log.Print("Video Player error! " + message, Log.Colors.Error);
     }
 
@@ -45,7 +47,7 @@ public class BackgroundMovingSphere : MonoBehaviour {
             if (Preparing && !GetComponent<VideoPlayer>().isPrepared) {
                 _curr_wait_for_video++;
                 if (_curr_wait_for_video >= MAX_WAIT_FOR_VIDEO) {
-                    Skip = true;
+                    OnError(GetComponent<VideoPlayer>(), "Attempt to read video file has timeout!");
                     _curr_wait_for_video = 0;
                 }
             }
@@ -55,24 +57,30 @@ public class BackgroundMovingSphere : MonoBehaviour {
                     StartCoroutine(AnimatorFunctions.LinearFade(true, _video_cover, FADE_TIME));
                     GetComponent<VideoPlayer>().Play();
                 }
-
-                transform.RotateAround(Vector3.zero, _axis, SPEED);
             }
         }
         else {
-            StartCoroutine(AnimatorFunctions.LinearFade(true, _video_cover, FADE_TIME));
-            Preparing = false;
-            Ready = false;
+            if (SkipReady) {
+                GetComponent<VideoPlayer>().enabled = false;
+                StartCoroutine(AnimatorFunctions.LinearFade(true, _video_cover, FADE_TIME));
+                Preparing = false;
+                SkipReady = false;
+                Ready = false;
+            }
         }
+
+        transform.RotateAround(Vector3.zero, _axis, SPEED);
     }
 
     void OnDisable() {
             if (_video_cover != null) {
                 Preparing = false;
                 Ready = false;
-                GetComponent<VideoPlayer>().Stop();
+                if (GetComponent<VideoPlayer>().enabled)
+                    GetComponent<VideoPlayer>().Stop();
                 _video_cover.color = new Color(_video_cover.color.r, _video_cover.color.g, _video_cover.color.b, 1);
                 _video_cover.gameObject.SetActive(false);
+            SkipReady = true;
             }
     }
 

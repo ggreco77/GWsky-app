@@ -17,8 +17,9 @@ class ArrowCamera : MonoBehaviour {
     Quaternion _prev_camera_rotation;
 
     const int CLOSENESS_FRAMES = 100;
-    const float CLOSENESS_MAX_ANGLE = 15f;
+    const float CLOSENESS_MAX_ANGLE = 20f;
     int _curr_closeness_counter = 0;
+
     public bool CheckCloseness { get; set; } = true;
 
     public void Init(Camera main_camera, EventDatabase events_db, Transform photosphere, LookAroundUI look_around_UI) {
@@ -39,6 +40,8 @@ class ArrowCamera : MonoBehaviour {
         LookAtEvent();
         if (CheckCloseness)
             CheckForCloseness();
+        else
+            _curr_closeness_counter = 0;
     }
 
     void LookAtEvent() {
