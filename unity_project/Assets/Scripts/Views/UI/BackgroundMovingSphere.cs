@@ -50,7 +50,7 @@ public class BackgroundMovingSphere : MonoBehaviour {
                 }
             }
 
-            if (Ready) {
+            if (Ready && !Skip) {
                 if (!GetComponent<VideoPlayer>().isPlaying) {
                     StartCoroutine(AnimatorFunctions.LinearFade(true, _video_cover, FADE_TIME));
                     GetComponent<VideoPlayer>().Play();
