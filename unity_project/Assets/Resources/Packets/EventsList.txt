@@ -1,0 +1,6 @@
+******************
+* List of Events *
+******************
+* Note: This would normally be fetched from a server.
+
+GW150914: "GW150914", "2015/09/14 09:50:45", 1, 4.1

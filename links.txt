@@ -1,0 +1,4 @@
+Journal of Astronomy and Computing				Journal in which article will be published
+
+https://github.com/Over17/UnityOBBDownloader			OBB Downloader for Unity
+https://docs.unity3d.com/Manual/android-OBBsupport.html	Unity 	support for OBB
