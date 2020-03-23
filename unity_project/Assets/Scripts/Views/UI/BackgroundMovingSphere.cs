@@ -7,6 +7,9 @@ public class BackgroundMovingSphere : MonoBehaviour {
     const float SPEED = 0.02f;
     const float FADE_TIME = 1;
     
+    const int MAX_WAIT_FOR_VIDEO = 180; // In frames
+    int _curr_wait_for_video = 0;
+
     readonly Vector2 _rot_point = new Vector2(210, 60); //-10, 30 for camera to look up
     Vector3 _axis;
     Image _video_cover;
@@ -18,6 +21,7 @@ public class BackgroundMovingSphere : MonoBehaviour {
         _video_cover = video_cover;
         _axis = SOFConverter.EquirectangularToAbsoluteSphere(_rot_point, transform.lossyScale.x);
         GetComponent<VideoPlayer>().errorReceived += OnError;
+        _curr_wait_for_video = 0;
     }
 
     void OnError(VideoPlayer source, string message) {
@@ -26,8 +30,8 @@ public class BackgroundMovingSphere : MonoBehaviour {
     }
 
     public void PrepareVideo() {
-        GetComponent<VideoPlayer>().Prepare();
         Preparing = true;
+        GetComponent<VideoPlayer>().Prepare();
     }
 
     // Update is called once per frame
@@ -36,6 +40,14 @@ public class BackgroundMovingSphere : MonoBehaviour {
             if (Preparing && GetComponent<VideoPlayer>().isPrepared) {
                 Preparing = false;
                 Ready = true;
+            }
+
+            if (Preparing && !GetComponent<VideoPlayer>().isPrepared) {
+                _curr_wait_for_video++;
+                if (_curr_wait_for_video >= MAX_WAIT_FOR_VIDEO) {
+                    Skip = true;
+                    _curr_wait_for_video = 0;
+                }
             }
 
             if (Ready) {
