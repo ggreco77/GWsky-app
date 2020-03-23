@@ -12,10 +12,17 @@ public class BackgroundMovingSphere : MonoBehaviour {
     Image _video_cover;
     public bool Preparing { get; private set; } = false;
     public bool Ready { get; private set; } = false;
+    public bool Skip { get; private set; } = false;
 
     public void Init(Image video_cover) {
         _video_cover = video_cover;
         _axis = SOFConverter.EquirectangularToAbsoluteSphere(_rot_point, transform.lossyScale.x);
+        GetComponent<VideoPlayer>().errorReceived += OnError;
+    }
+
+    void OnError(VideoPlayer source, string message) {
+        Skip = true;
+        Log.Print("Video Player error! " + message, Log.Colors.Error);
     }
 
     public void PrepareVideo() {
@@ -25,29 +32,36 @@ public class BackgroundMovingSphere : MonoBehaviour {
 
     // Update is called once per frame
     void Update() {
-        if (Preparing && GetComponent<VideoPlayer>().isPrepared) {
-            Preparing = false;
-            Ready = true;
-        }
-
-        if (Ready) {
-            if (!GetComponent<VideoPlayer>().isPlaying) {
-                StartCoroutine(AnimatorFunctions.LinearFade(true, _video_cover, FADE_TIME));
-                GetComponent<VideoPlayer>().Play();
+        if (!Skip) {
+            if (Preparing && GetComponent<VideoPlayer>().isPrepared) {
+                Preparing = false;
+                Ready = true;
             }
 
-            transform.RotateAround(Vector3.zero, _axis, SPEED);
+            if (Ready) {
+                if (!GetComponent<VideoPlayer>().isPlaying) {
+                    StartCoroutine(AnimatorFunctions.LinearFade(true, _video_cover, FADE_TIME));
+                    GetComponent<VideoPlayer>().Play();
+                }
+
+                transform.RotateAround(Vector3.zero, _axis, SPEED);
+            }
+        }
+        else {
+            StartCoroutine(AnimatorFunctions.LinearFade(true, _video_cover, FADE_TIME));
+            Preparing = false;
+            Ready = false;
         }
     }
 
     void OnDisable() {
-        if (_video_cover != null) {
-            Preparing = false;
-            Ready = false;
-            GetComponent<VideoPlayer>().Stop();
-            _video_cover.color = new Color(_video_cover.color.r, _video_cover.color.g, _video_cover.color.b, 1);
-            _video_cover.gameObject.SetActive(false);
-        }
+            if (_video_cover != null) {
+                Preparing = false;
+                Ready = false;
+                GetComponent<VideoPlayer>().Stop();
+                _video_cover.color = new Color(_video_cover.color.r, _video_cover.color.g, _video_cover.color.b, 1);
+                _video_cover.gameObject.SetActive(false);
+            }
     }
 
     void OnEnable() {

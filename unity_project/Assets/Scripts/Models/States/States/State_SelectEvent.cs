@@ -19,7 +19,7 @@ class State_SelectEvent : State {
         _select_event_UI.gameObject.SetActive(true);
         _select_event_UI.StartCoroutine(_select_event_UI.Enable());
 
-        if (!_UI_container.UISphere.Ready && !_UI_container.UISphere.Preparing) {
+        if (!_UI_container.UISphere.Ready && !_UI_container.UISphere.Preparing && !_UI_container.UISphere.Skip) {
             _UI_container.UISphere.PrepareVideo();
         }
     }

@@ -19,7 +19,7 @@ class State_Credits : State {
         _credits_UI.gameObject.SetActive(true);
         _credits_UI.StartCoroutine(_credits_UI.Enable());
 
-        if (!_UI_container.UISphere.Ready && !_UI_container.UISphere.Preparing) {
+        if (!_UI_container.UISphere.Ready && !_UI_container.UISphere.Preparing && !_UI_container.UISphere.Skip) {
             _UI_container.UISphere.PrepareVideo();
         }
     }

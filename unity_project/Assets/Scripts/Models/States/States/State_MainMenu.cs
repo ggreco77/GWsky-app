@@ -19,7 +19,7 @@ class State_MainMenu : State {
         _main_menu_UI.gameObject.SetActive(true);
         _main_menu_UI.StartCoroutine(_main_menu_UI.Enable());
 
-        if (!_UI_container.UISphere.Ready && !_UI_container.UISphere.Preparing) {
+        if (!_UI_container.UISphere.Ready && !_UI_container.UISphere.Preparing && !_UI_container.UISphere.Skip) {
             _UI_container.UISphere.PrepareVideo();
         }
     }

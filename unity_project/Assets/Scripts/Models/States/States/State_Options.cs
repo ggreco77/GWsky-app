@@ -19,7 +19,7 @@ class State_Options : State {
         _options_UI.gameObject.SetActive(true);
         _options_UI.StartCoroutine(_options_UI.Enable());
 
-        if (!_UI_container.UISphere.Ready && !_UI_container.UISphere.Preparing) {
+        if (!_UI_container.UISphere.Ready && !_UI_container.UISphere.Preparing && !_UI_container.UISphere.Skip) {
             _UI_container.UISphere.PrepareVideo();
         }
     }
