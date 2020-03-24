@@ -1,1 +1,26 @@
+**************
+* Event Data *
+**************
 
+Name: "GW170817 - optical background"
+Date: 17/08/2017 12:41:04
+Description: "On 17 August 2017, at 12:41:04 UTC the LIGO-Virgo gravitational wave detector
+network registered a gravitational wave signal from the inspiral of two compact stellar
+remnants known as neutron stars.
+Less than two seconds after the GW170817 signal, NASA's Fermi satellite observed a gamma-ray burst,
+now known as GRB170817A, and within minutes of these initial detections telescopes around the world
+began an extensive observing campaign. The Swope telescope in Chile was the first to report a bright
+optical source (AT2017gfo) in the galaxy NGC 4993 and several other teams independently detected the
+same transient over the next minutes and hours. For the next several weeks astronomers observed this
+location with instruments sensitive across the electromagnetic spectrum; these observations provide a
+comprehensive view of this cataclysmic event starting ~100 seconds before merger until several weeks after.
+The observations support the hypothesis that two neutron stars merged in
+NGC 4993 - producing gravitational waves, a short-duration gamma-ray burst, and a kilonova.
+GW170817 marks a new era of multi-messenger astronomy,
+where the same event is observed by both gravitational waves and electromagnetic waves.
+The new light-based observations show that heavy elements, such as lead and gold, are created 
+in these collisions and subsequently distributed throughout the universe.
+
+**Background Image**
+Sky Optical Survey (Credit: A. Mellinger)."
+ArrowPointTo: 196.30371, -21.30185
