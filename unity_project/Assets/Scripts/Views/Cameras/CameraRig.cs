@@ -149,4 +149,8 @@ public class CameraRig : MonoBehaviour {
     void OnEnable() {
         GetComponent<Camera>().fieldOfView = MAX_ZOOM_SIZE;
     }
+
+    void OnDisable() {
+        GetComponent<Camera>().fieldOfView = MAX_ZOOM_SIZE;
+    }
 }

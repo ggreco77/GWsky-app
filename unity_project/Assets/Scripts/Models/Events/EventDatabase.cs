@@ -78,6 +78,13 @@ public class EventDatabase : MonoBehaviour {
                     case "ArrowPointsTo":
                         new_evt.ArrowPointsTo = new Vector2(float.Parse(str[1]), float.Parse(str[2]));
                         break;
+                    case "PhotosphereTypes":
+                        if (str.Length - 1 != tex_a.Length)
+                            throw new FormatException("Wrong number of fields in PhotosphereTypes!");
+                        new_evt.PhotosphereTypes = new string[tex_a.Length];
+                        for (int i = 0; i < new_evt.PhotosphereTypes.Length; i++)
+                            new_evt.PhotosphereTypes[i] = str[i + 1];
+                        break;
                 }
             }
 
@@ -129,6 +136,7 @@ public class EventDatabase : MonoBehaviour {
                     Date = DateTime.ParseExact(str[2], "yyyy/MM/dd HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture),
                     PhotospheresNumber = int.Parse(str[3]),
                     Size = float.Parse(str[4]),
+                    Hash = str[5],
                     OnLocalStorage = false
                 };
 
@@ -145,8 +153,35 @@ public class EventDatabase : MonoBehaviour {
             string event_ID = pair.Key;
             EventSummary evt = pair.Value;
 
-            if (Directory.Exists(base_path + event_ID))
-                evt.OnLocalStorage = true;
+            if (Directory.Exists(base_path + event_ID)) {
+                try {
+                string hash = "";
+                for (int i = 0; i < evt.PhotospheresNumber; i++) {
+                    if (File.Exists(base_path + event_ID + "/" + i + ".jpg"))
+                        hash += HashExtension.GetHashMD5(base_path + event_ID + "/" + i + ".jpg");
+                    else
+                        throw new FileLoadException();
+                }
+
+                if (File.Exists(base_path + event_ID + "/data/data.txt"))
+                    hash += HashExtension.GetHashMD5(base_path + event_ID + "/data/data.txt");
+                else
+                    throw new FileLoadException();
+                if (File.Exists(base_path + event_ID + "/data/sound.mp3"))
+                    hash += HashExtension.GetHashMD5(base_path + event_ID + "/data/sound.mp3");
+                else
+                    throw new FileLoadException();
+
+                Debug.Log(hash);
+                if (hash == evt.Hash)
+                    evt.OnLocalStorage = true;
+                else
+                    throw new FileLoadException();
+                }
+                catch (FileLoadException) {
+                    DeleteEvent(event_ID);
+                }
+            }
         }
     }
 
@@ -193,6 +228,8 @@ public class EventData {
 
     public Vector2 ArrowPointsTo = new Vector2(0, 90);
     public AudioClip WaveSound { get; set; } = null;
+
+    public string[] PhotosphereTypes { get; set; }
 }
 
 //Contains brief data pertaining to an event (used in the selection menu).
@@ -207,5 +244,6 @@ public class EventSummary {
     // Memory size for the event, in MBs
     public float Size { get; set; }
 
+    public string Hash { get; set; }
     public bool OnLocalStorage { get; set; }
 }

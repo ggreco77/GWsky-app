@@ -22,6 +22,11 @@ class SphereAligner : MonoBehaviour {
     // Minimum compass accuracy in degrees, based on Unity reading
     const int MIN_COMPASS_ACCURACY = 2;
 
+    // Maximum number of alignment attempts before dropping out
+    const int MAX_ATTEMPTS = 5;
+    // Current number of alignment attempts
+    int _curr_attempts = 0;
+
     // Radius of the photosphere to align
     float _sphere_radius;
 
@@ -351,11 +356,13 @@ class SphereAligner : MonoBehaviour {
                 // And requeue the alignment
                 _requeue = true;
             }
+            // Else, if an error has been raised during coordinates computation, retry
+            else if (_error)
+                _requeue = true;
             // If camera has not moved much and no errors were raised during coordinates computation...
-            else if (!_error) {
+            else
                 // Align sphere based on obtained rotation
                 ApplySphereAlignment(local_coords);
-            }
 
             // Allow another call for this function. Return point
             _lock = 1;
@@ -471,9 +478,14 @@ class SphereAligner : MonoBehaviour {
         // Start a new sphere alignment and wait its completion...
         do {
             await AlignSphereInternal();
+            // Once alignment is complete, increase number of attempts done so far
+            _curr_attempts++;
         }
         // So long as the alignment request should be requeued
-        while (_requeue);
+        while (_requeue && _curr_attempts < MAX_ATTEMPTS);
+
+        // Since alignment is over, reset the counter of attempts number
+        _curr_attempts = 0;
     }
 
     /// <summary>

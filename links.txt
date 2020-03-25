@@ -2,3 +2,12 @@ Journal of Astronomy and Computing				Journal in which article will be published
 
 https://github.com/Over17/UnityOBBDownloader			OBB Downloader for Unity
 https://docs.unity3d.com/Manual/android-OBBsupport.html	Unity 	support for OBB
+
+> Virtual Observatory
+
+HIPS (javascript)
+Aladin lite
+hips 2 fits (Database .jpeg -> fizz) (+ di 500 immagini)
+
+Quindi, a differenza di altre app, non cieli finti ma veri, un cielo "astronomico".
+Dunque cieli Infrared, Artistici, tutto quello che il virtual observatory fa.
