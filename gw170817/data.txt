@@ -19,8 +19,5 @@ NGC 4993 - producing gravitational waves, a short-duration gamma-ray burst, and 
 GW170817 marks a new era of multi-messenger astronomy,
 where the same event is observed by both gravitational waves and electromagnetic waves.
 The new light-based observations show that heavy elements, such as lead and gold, are created 
-in these collisions and subsequently distributed throughout the universe.
-
-**Background Image**
-Sky Optical Survey (Credit: A. Mellinger)."
+in these collisions and subsequently distributed throughout the universe."
 ArrowPointTo: 196.30371, -21.30185
