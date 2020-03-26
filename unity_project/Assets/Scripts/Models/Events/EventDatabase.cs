@@ -172,7 +172,8 @@ public class EventDatabase : MonoBehaviour {
                 else
                     throw new FileLoadException();
 
-                Debug.Log(event_ID + ": " + hash);
+                //Debug.Log(event_ID + ": " + hash);
+                
                 if (hash == evt.Hash)
                     evt.OnLocalStorage = true;
                 else

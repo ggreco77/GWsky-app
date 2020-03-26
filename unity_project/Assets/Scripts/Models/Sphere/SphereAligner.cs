@@ -26,6 +26,8 @@ class SphereAligner : MonoBehaviour {
     const int MAX_ATTEMPTS = 5;
     // Current number of alignment attempts
     int _curr_attempts = 0;
+    // Whether UTC time needs to be queried again
+    bool _query_UTC = true;
 
     // Radius of the photosphere to align
     float _sphere_radius;
@@ -158,6 +160,8 @@ class SphereAligner : MonoBehaviour {
                 Log.Print("Warning! Could not Connect to NIST Server. Timeout.", Log.Colors.Warning);
                 // Set internal error status to true
                 _error = true;
+                // Set to requery time
+                _query_UTC = true;
                 // Return
                 return UTC;
             }
@@ -168,6 +172,8 @@ class SphereAligner : MonoBehaviour {
             Log.Print("Warning! Could not Connect to NIST Server. " + e.Message, Log.Colors.Warning);
             // Set internal error status to true
             _error = true;
+            // Set to requery time
+            _query_UTC = true;
             // Return
             return UTC;
         }
@@ -192,6 +198,8 @@ class SphereAligner : MonoBehaviour {
 
             // Copy the UTC into the appropriate variable
             UTC = new DateTime(yr, mo, dy, hr, mm, sc);
+            // Since time has been fetched, no need to fetch it again in the time vicinity
+            _query_UTC = false;
         }
         // If for some reason signature is not there...
         else {
@@ -199,6 +207,8 @@ class SphereAligner : MonoBehaviour {
             Log.Print("Warning! Could not retrieve NIST Time. Unexpected server response body!", Log.Colors.Warning);
             // Set internal error status to true
             _error = true;
+            // Set to requery time
+            _query_UTC = true;
             // Return
             return UTC;
         }
@@ -278,8 +288,9 @@ class SphereAligner : MonoBehaviour {
         // Converted local coordinates
         Vector2 az_h;
 
-        // Get updated UTC
-        await GetNISTDate();
+        // Get updated UTC, if needed
+        if (_query_UTC)
+            await GetNISTDate();
 
         // Compute GMST
         // Difference in days from standard date
@@ -357,8 +368,12 @@ class SphereAligner : MonoBehaviour {
                 _requeue = true;
             }
             // Else, if an error has been raised during coordinates computation, retry
-            else if (_error)
+            else if (_error) {
                 _requeue = true;
+                // If time needs to be queried again, ensure to wait at least 4 seconds (requirement by NIST servers)
+                if (_query_UTC)
+                    await Task.Delay(TimeSpan.FromSeconds(4.0f));
+            }
             // If camera has not moved much and no errors were raised during coordinates computation...
             else
                 // Align sphere based on obtained rotation
@@ -475,6 +490,8 @@ class SphereAligner : MonoBehaviour {
     /// Public method used to issue a sphere alignment to this component.
     /// </summary>
     public async void AlignSphere() {
+        // Set a new UTC time to be required
+        _query_UTC = true;
         // Start a new sphere alignment and wait its completion...
         do {
             await AlignSphereInternal();
