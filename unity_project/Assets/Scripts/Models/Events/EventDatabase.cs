@@ -172,14 +172,15 @@ public class EventDatabase : MonoBehaviour {
                 else
                     throw new FileLoadException();
 
-                Debug.Log(hash);
+                Debug.Log(event_ID + ": " + hash);
                 if (hash == evt.Hash)
                     evt.OnLocalStorage = true;
                 else
                     throw new FileLoadException();
                 }
                 catch (FileLoadException) {
-                    DeleteEvent(event_ID);
+                    Directory.Delete(base_path + event_ID, true);
+                    _events[event_ID].OnLocalStorage = false;
                 }
             }
         }
