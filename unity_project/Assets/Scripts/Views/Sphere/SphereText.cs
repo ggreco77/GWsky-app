@@ -48,7 +48,7 @@ public class SphereText : MonoBehaviour {
             // While there are lines to read, read a line...
             while ((str = TextRead.ReadCurrLine(file)) != null)
                 // ... And create a new text from the info given in the non-empty line
-                AddText(str[0], str[1], new Vector2(float.Parse(str[2]), float.Parse(str[3])), new Vector2(0, float.Parse(str[4])), followed_sphere);
+                AddText(str[0], str[1], new Vector2(float.Parse(str[2]), float.Parse(str[3])), followed_sphere);
 
             // Close the input file
             file.Close();
@@ -67,12 +67,11 @@ public class SphereText : MonoBehaviour {
     /// <param name="text"></param>
     /// <param name="pos"></param>
     /// <param name="followed_sphere"></param>
-    public void AddText(string key, string text, Vector2 pos, Vector2 offset, Transform followed_sphere) {
+    public void AddText(string key, string text, Vector2 pos, Transform followed_sphere) {
         // Create a new text structure, passing the spherical position, offset and creating a new GameObject with
         // name equal to the provided ID
         Text new_text = new Text {
             pos = pos,
-            offset = offset,
             go = new GameObject(key)
         };
 
@@ -87,10 +86,15 @@ public class SphereText : MonoBehaviour {
         new_text.mesh.font = Resources.Load<TMP_FontAsset>("Fonts/nasalization-rg");
         // Set the text size as a constant
         new_text.mesh.fontSize = TEXT_SIZE;
+        // Set the text pivot
+        RectTransform text_rt = (RectTransform) new_text.go.transform;
+        text_rt.pivot = new Vector2(-0.025f, -1);
+        // Set the text height
+        text_rt.sizeDelta = new Vector2(200, 1);
         // Set text not to wrap on a new line
         new_text.mesh.enableWordWrapping = false;
         // Set text to be centered on its origin
-        new_text.mesh.alignment = TextAlignmentOptions.Center;
+        new_text.mesh.alignment = TextAlignmentOptions.Left;
         // Set parent of the text as the object possessing this component (which should also have a Canvas)
         new_text.go.transform.SetParent(transform);
 
@@ -121,7 +125,7 @@ public class SphereText : MonoBehaviour {
             // Fetch the text from the pair of ID and text structure
             Text text = pair.Value;
             // Find the point on the followed sphere corresponding to the spherical coordinates of the text
-            Vector3 sphere_pos = SOFConverter.EquirectangularToSphere(text.pos + text.offset, text.followed_sphere, TEXTSPHERE_RADIUS);
+            Vector3 sphere_pos = SOFConverter.EquirectangularToSphere(text.pos, text.followed_sphere, TEXTSPHERE_RADIUS);
             // Set the text GameObject as active and visible
             text.go.SetActive(true);
             // Place the text based on computed screen position
@@ -147,7 +151,6 @@ public class SphereText : MonoBehaviour {
 /// </summary>
 struct Text {
     public Vector2 pos;                 // Position of the text in spherical coordinates, where the first angle is [0, 360], the second is [-90, +90]
-    public Vector2 offset;              // Offset of text from pos to improve visibility in photosphere. Same coordinates as pos
     public TextMeshProUGUI mesh;        // The text component
     public GameObject go;               // Gameobject containing the text
     public Transform followed_sphere;   // Sphere that the text should be aligned with

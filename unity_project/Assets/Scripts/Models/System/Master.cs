@@ -79,15 +79,15 @@ public class Master : MonoBehaviour {
         _sphere_texts.LoadFromTextFile(_sphere);
 
         // Manually add cardinal points to cardinal points sphere
-        _sphere_texts.AddText("North Text", "North", new Vector2(0, 0), Vector2.zero, _north_sphere);
-        _sphere_texts.AddText("South Text", "South", new Vector2(180, 0), Vector2.zero, _north_sphere);
-        _sphere_texts.AddText("East Text", "East", new Vector2(270, 0), Vector2.zero,  _north_sphere);      ////
-        _sphere_texts.AddText("West Text", "West", new Vector2(90, 0), Vector2.zero,  _north_sphere);       ////
-        _sphere_texts.AddText("Bottom Text", "Nadir", new Vector2(0, -90), Vector2.zero,  _north_sphere);
-        _sphere_texts.AddText("Top Text", "Zenith", new Vector2(0, 90), Vector2.zero,  _north_sphere);
+        _sphere_texts.AddText("North Text", "North", new Vector2(0, 0), _north_sphere);
+        _sphere_texts.AddText("South Text", "South", new Vector2(180, 0), _north_sphere);
+        _sphere_texts.AddText("East Text", "East", new Vector2(270, 0),  _north_sphere);      ////
+        _sphere_texts.AddText("West Text", "West", new Vector2(90, 0),  _north_sphere);       ////
+        _sphere_texts.AddText("Bottom Text", "Nadir", new Vector2(0, -90),  _north_sphere);
+        _sphere_texts.AddText("Top Text", "Zenith", new Vector2(0, 90),  _north_sphere);
         
         // Manually add ICRS North and South to photosphere
-        _sphere_texts.AddText("PS", "PS", new Vector2(0, -90), Vector2.zero,  _sphere);
-        _sphere_texts.AddText("PN", "PN", new Vector2(0, 90), Vector2.zero,  _sphere);
+        _sphere_texts.AddText("PS", "PS", new Vector2(0, -90),  _sphere);
+        _sphere_texts.AddText("PN", "PN", new Vector2(0, 90),  _sphere);
     }
 }
