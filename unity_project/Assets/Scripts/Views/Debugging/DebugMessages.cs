@@ -7,7 +7,7 @@ using TMPro;
 public class DebugMessages : MonoBehaviour {
     // Reference to text component in which to write text
     TextMeshProUGUI _text;
-    
+
     /// <summary>
     /// Monobehaviour Method. Start is called before the first frame.
     /// </summary>

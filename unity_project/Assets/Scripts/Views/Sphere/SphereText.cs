@@ -24,9 +24,24 @@ public class SphereText : MonoBehaviour {
     /// Init method, should be called by Master. Unfortunately Constructors do not work well with Unity, so a Init function has to be called.
     /// </summary>
     /// <param name="main_camera"></param>
-    public void Init(Camera main_camera) {
+    public void Init(Camera main_camera, Transform sphere, Transform north_sphere) {
         // Pass the in-game camera to a local variable
         _camera = main_camera;
+
+        // Add star texts to photosphere
+        LoadFromTextFile(sphere);
+
+        // Manually add cardinal points to cardinal points sphere. Note convention is counter-clockwise
+        AddText("North Text", "North", new Vector2(0, 0), north_sphere);
+        AddText("South Text", "South", new Vector2(180, 0), north_sphere);
+        AddText("East Text", "East", new Vector2(270, 0),  north_sphere);
+        AddText("West Text", "West", new Vector2(90, 0),  north_sphere);
+        AddText("Bottom Text", "Nadir", new Vector2(0, -90),  north_sphere);
+        AddText("Top Text", "Zenith", new Vector2(0, 90),  north_sphere);
+        
+        // Manually add ICRS North and South to photosphere
+        AddText("PS", "PS", new Vector2(0, -90),  sphere);
+        AddText("PN", "PN", new Vector2(0, 90),  sphere);
     }
 
     /// <summary>
@@ -36,7 +51,7 @@ public class SphereText : MonoBehaviour {
     /// <param name="folder">Folder on the local storage in which the text file is contained</param>
     /// <param name="filename">Name of the file (Without extension!)</param>
     /// <param name="followed_sphere">Sphere that these texts should be aligned with</param>
-    public void LoadFromTextFile(Transform followed_sphere) {
+    void LoadFromTextFile(Transform followed_sphere) {
         try {
             // Get Stars file from Resources in Unity
             string stars_string = Resources.Load<TextAsset>("Data/Stars").text;
@@ -67,7 +82,7 @@ public class SphereText : MonoBehaviour {
     /// <param name="text"></param>
     /// <param name="pos"></param>
     /// <param name="followed_sphere"></param>
-    public void AddText(string key, string text, Vector2 pos, Transform followed_sphere) {
+    void AddText(string key, string text, Vector2 pos, Transform followed_sphere) {
         // Create a new text structure, passing the spherical position, offset and creating a new GameObject with
         // name equal to the provided ID
         Text new_text = new Text {
@@ -106,7 +121,7 @@ public class SphereText : MonoBehaviour {
     /// Remove an existing text from the list of texts to align and display, given its ID.
     /// </summary>
     /// <param name="key"></param>
-    public void RemoveText(string key) {
+    void RemoveText(string key) {
         // If the list of texts contains a text with the input ID...
         if (_texts.ContainsKey(key)) {
             // Destroy the GameObject of that text

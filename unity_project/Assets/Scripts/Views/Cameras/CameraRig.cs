@@ -50,7 +50,7 @@ public class CameraRig : MonoBehaviour {
     /// Rotates the camera.
     /// </summary>
     /// Should be called once per Unity's Update().
-    public void Rotate() {
+    void Rotate() {
         // If the device has a working gyroscope, rotate via gyroscope
         if (SensorExtension.TestGyroscope())
             RotateWithGyroscope();
@@ -117,7 +117,7 @@ public class CameraRig : MonoBehaviour {
     /// <summary>
     /// 
     /// </summary>
-    public void Track() {
+    void Track() {
         // Add tracking distance to list
         _tracking_list.Add(System.Math.Abs(Quaternion.Angle(_tracking_initial_rot, _destination)));
     }

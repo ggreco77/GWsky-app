@@ -20,7 +20,7 @@ class ArrowCamera : MonoBehaviour {
     const float CLOSENESS_MAX_ANGLE = 20f;
     int _curr_closeness_counter = 0;
 
-    public bool CheckCloseness { get; set; } = true;
+    public bool ClosenessCheck { get; set; } = true;
 
     public void Init(Camera main_camera, EventDatabase events_db, Transform photosphere, LookAroundUI look_around_UI) {
         Arrow = transform.parent.Find("Arrow");
@@ -38,7 +38,7 @@ class ArrowCamera : MonoBehaviour {
 
     void Update() {
         LookAtEvent();
-        if (CheckCloseness)
+        if (ClosenessCheck)
             CheckForCloseness();
         else
             _curr_closeness_counter = 0;
@@ -83,11 +83,11 @@ class ArrowCamera : MonoBehaviour {
 
     public void Disable() {
         _arrow_renderer.enabled = false;
-        CheckCloseness = false;
+        ClosenessCheck = false;
     }
 
     public void Enable() {
         _arrow_renderer.enabled = true;
-        CheckCloseness = true;
+        ClosenessCheck = true;
     }
 }

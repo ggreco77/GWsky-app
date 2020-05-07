@@ -35,8 +35,8 @@ class SphereAligner : MonoBehaviour {
     // Coordinates of the two points in the ICRS system used for photosphere alignment.
     // First point is chosen as one of the poles to ensure most precise positioning of the poles,
     // Second point MUST be chosen close enough to first one (see sphere alignment methods)
-    Vector2 p_a = new Vector2(0, 90);
-    Vector2 p_b = new Vector2(0.001f, 89.999f);
+    Vector2 _p_a = new Vector2(0, 90);
+    Vector2 _p_b = new Vector2(0.001f, 89.999f);
 
     // Reference to photosphere to align
     Transform _sphere;
@@ -291,6 +291,9 @@ class SphereAligner : MonoBehaviour {
         // Get updated UTC, if needed
         if (_query_UTC)
             await GetNISTDate();
+        // Return prematurely on error
+        if (_error)
+            return new Vector2(0, 0);
 
         // Compute GMST
         // Difference in days from standard date
@@ -306,7 +309,10 @@ class SphereAligner : MonoBehaviour {
 
         // Get GPS and True North Heading
         await GetGPSAndRelativeNorth();
-
+        // Return prematurely on error
+        if (_error)
+            return new Vector2(0, 0);
+        
         // LST = GMST - longitude west = GMST + longitude east. Longitude is converted by dividing by 15
         // since 360 / 24 = 15
         LST = GMST + TimeSpan.FromHours(GPS.y / 15);
@@ -416,8 +422,8 @@ class SphereAligner : MonoBehaviour {
             _sphere_b.rotation = _sphere_destination.rotation;
 
             // Rotate photosphere based on point a, so that point a aligns with local North
-            _sphere_destination.RotateAround(Vector3.zero, _sphere_destination.up, -p_a.y);         // + Altitude
-            _sphere_destination.RotateAround(Vector3.zero, _sphere_destination.forward, -p_a.x);     // + Azimuth
+            _sphere_destination.RotateAround(Vector3.zero, _sphere_destination.up, -_p_a.y);         // + Altitude
+            _sphere_destination.RotateAround(Vector3.zero, _sphere_destination.forward, -_p_a.x);     // + Azimuth
             // Rotate photosphere by the computed azimuth and altitude, so that point a aligns with its real world position
             _sphere_destination.RotateAround(Vector3.zero, SOFConverter.EquirectangularToAbsoluteSphere(new Vector2(0, 90), _sphere_radius),
                                              a_az_h.x);     // + Azimuth
@@ -425,8 +431,8 @@ class SphereAligner : MonoBehaviour {
                                              a_az_h.y);     // + Altitude
             
             // Do these last two steps exactly the same on the clone sphere for point b
-            _sphere_b.RotateAround(Vector3.zero, _sphere_b.up, -p_b.y);         // + Altitude
-            _sphere_b.RotateAround(Vector3.zero, _sphere_b.forward, -p_b.x);     // + Azimuth
+            _sphere_b.RotateAround(Vector3.zero, _sphere_b.up, -_p_b.y);         // + Altitude
+            _sphere_b.RotateAround(Vector3.zero, _sphere_b.forward, -_p_b.x);     // + Azimuth
             _sphere_b.RotateAround(Vector3.zero, SOFConverter.EquirectangularToAbsoluteSphere(new Vector2(0, 90), _sphere_radius),
                                    b_az_h.x);     // + Azimuth
             _sphere_b.RotateAround(Vector3.zero, SOFConverter.EquirectangularToAbsoluteSphere(new Vector2(180, 0), _sphere_radius),
@@ -435,9 +441,9 @@ class SphereAligner : MonoBehaviour {
             // Second Point Alignment
             // Find the three points on the 3D space corresponding to the aligned positions of a (a), b (c) and the position in
             // which b is on the photosphere after alignment of the first point (b)
-            Vector3 a = SOFConverter.EquirectangularToSphere(p_a, _sphere_destination, _sphere_radius);
-            Vector3 b = SOFConverter.EquirectangularToSphere(p_b, _sphere_destination, _sphere_radius);
-            Vector3 c = SOFConverter.EquirectangularToSphere(p_b, _sphere_b, _sphere_radius);
+            Vector3 a = SOFConverter.EquirectangularToSphere(_p_a, _sphere_destination, _sphere_radius);
+            Vector3 b = SOFConverter.EquirectangularToSphere(_p_b, _sphere_destination, _sphere_radius);
+            Vector3 c = SOFConverter.EquirectangularToSphere(_p_b, _sphere_b, _sphere_radius);
 
             // Compute two vectors going from point a to points b and c: these vectors form an angle, which is the angle to which
             // photosphere should be rotated around the axis passing through a to align the second point
@@ -450,7 +456,7 @@ class SphereAligner : MonoBehaviour {
             
             // Rotate photosphere around axis passing through a by the computed angle
             _sphere_destination.RotateAround(Vector3.zero,
-                                             SOFConverter.EquirectangularToSphere(p_a, _sphere_destination, _sphere_radius),
+                                             SOFConverter.EquirectangularToSphere(_p_a, _sphere_destination, _sphere_radius),
                                              rot_angle);
         
             // Signal that first calibration has been finished
@@ -479,8 +485,8 @@ class SphereAligner : MonoBehaviour {
     /// <returns></returns>
     async Task<Tuple<Vector2, Vector2>> ComputeSphereAlignment() {
         //Compute local coordinates for both reference points
-        Vector2 a_az_h = Az_H = await ICRSToLocal(new Vector2(p_a.x, p_a.y));
-        Vector2 b_az_h = await ICRSToLocal(new Vector2(p_b.x, p_b.y));
+        Vector2 a_az_h = Az_H = await ICRSToLocal(new Vector2(_p_a.x, _p_a.y));
+        Vector2 b_az_h = await ICRSToLocal(new Vector2(_p_b.x, _p_b.y));
         
         // Return the local coordinates in a tuple
         return new Tuple<Vector2, Vector2>(a_az_h, b_az_h);

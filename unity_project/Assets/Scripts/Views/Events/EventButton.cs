@@ -8,7 +8,6 @@ class EventButton : Button {
     public const float MAX_ALPHA = 0.85f;
     Color _pressed_color = new Color(0.7843f, 0.7843f, 0.7843f, 1);
     Color _normal_color = new Color(1, 1, 1, 1);
-    Color _disabled_color = new Color(0.5f, 0.5f, 0.5f, 1);
 
     Color _normal_partial_color = new Color(1, 1, 1, MAX_ALPHA);
     Color _disabled_partial_color = new Color(0.5f, 0.5f, 0.5f, MAX_ALPHA);

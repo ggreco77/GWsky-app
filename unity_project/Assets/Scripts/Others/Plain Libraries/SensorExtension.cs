@@ -10,7 +10,7 @@ using UnityEngine.Android;
 /// </summary>
 public static class SensorExtension {
     // States of sensor availability
-    public enum SensorAvailable { FALSE, TRUE, NOT_TESTED }
+    public enum SensorAvailable { False, True, NotTested }
     // Maximum number of seconds to wait for location service initialization
     const int LOCATIONSERVICE_WAIT = 20;
 
@@ -18,9 +18,9 @@ public static class SensorExtension {
     static int _lock = 1;
 
     // Whether the gyroscope sensor is available
-    static SensorAvailable _gyro_supported = SensorAvailable.NOT_TESTED;
+    static SensorAvailable _gyro_supported = SensorAvailable.NotTested;
     // Whether GPS and location is available
-    static SensorAvailable _location_supported = SensorAvailable.NOT_TESTED;
+    static SensorAvailable _location_supported = SensorAvailable.NotTested;
 
     /// <summary>
     /// Tests the availability of location sensors.
@@ -28,7 +28,7 @@ public static class SensorExtension {
     /// <returns></returns>
     public static bool TestLocation() {
         // Return false if location has not been tested yet
-        if (_location_supported == SensorAvailable.NOT_TESTED)
+        if (_location_supported == SensorAvailable.NotTested)
             return false;
         // Otherwise, return whether location is supported or not
         else
@@ -41,18 +41,18 @@ public static class SensorExtension {
     /// <returns></returns>
     public static bool TestGyroscope() {
         // If the sensor has not been tested yet...
-        if (_gyro_supported == SensorAvailable.NOT_TESTED) {
+        if (_gyro_supported == SensorAvailable.NotTested) {
             // If the system does not support a gyroscope...
             if (!SystemInfo.supportsGyroscope) {
                 // Set the sensor availability to false
-                _gyro_supported = SensorAvailable.FALSE;
+                _gyro_supported = SensorAvailable.False;
                 // Write an error message to debug
                 Log.Print("No Gyroscope has been detected!", Log.Colors.Warning);
             }
             // If the sensor is supported...
             else {
                 // Set the sensor availability to true
-                _gyro_supported = SensorAvailable.TRUE;
+                _gyro_supported = SensorAvailable.True;
                 // Enable gyroscope usage
                 Input.gyro.enabled = true;
             }
@@ -73,13 +73,13 @@ public static class SensorExtension {
         // If the critical section is free to run...
         if (key == 1) {
             // If the location services have not been tested yet...
-            if (_location_supported == SensorAvailable.NOT_TESTED) {
+            if (_location_supported == SensorAvailable.NotTested) {
                 // If user does not have location enabled...
                 if (!Input.location.isEnabledByUser) {
                     // Write a warning message to debug
                     Log.Print("Warning! GPS is not enabled!", Log.Colors.Warning);
                     // Set the location to NOT supported
-                    _location_supported = SensorAvailable.FALSE;
+                    _location_supported = SensorAvailable.False;
                 }
                 #if PLATFORM_ANDROID
                 // If android user has not enabled coarse location for this application...
@@ -87,7 +87,7 @@ public static class SensorExtension {
                     // Write a warning message to debug
                     Log.Print("Warning! GPS is not enabled!", Log.Colors.Warning);
                     // Set the location to NOT supported
-                    _location_supported = SensorAvailable.FALSE;
+                    _location_supported = SensorAvailable.False;
                 }
                 #endif
                 else {
@@ -110,14 +110,14 @@ public static class SensorExtension {
                         // Write a warning message to debug
                         Log.Print("Warning! GPS system timed out!", Log.Colors.Warning);
                         // Set the location to NOT supported
-                        _location_supported = SensorAvailable.FALSE;
+                        _location_supported = SensorAvailable.False;
                     }
                     // Connection has failed
                     else if (Input.location.status == LocationServiceStatus.Failed) {
                         // Write a warning message to debug
                         Log.Print("Warning! Failed to determine GPS Position!", Log.Colors.Warning);
                         // Set the location to NOT supported
-                        _location_supported = SensorAvailable.FALSE;
+                        _location_supported = SensorAvailable.False;
                     }
                     else {
                         // Enable the compass
@@ -128,12 +128,12 @@ public static class SensorExtension {
                             // Write a warning message to debug
                             Log.Print("Warning! No Compass detected!", Log.Colors.Warning);
                             // Set the location to NOT supported
-                            _location_supported = SensorAvailable.FALSE;
+                            _location_supported = SensorAvailable.False;
                         }
                         // Finally, if every check has succeeded...
                         else {
                             // Set the location to supported
-                            _location_supported = SensorAvailable.TRUE;
+                            _location_supported = SensorAvailable.True;
                         }
                     }
                 }
@@ -159,7 +159,7 @@ public static class SensorExtension {
             // Stop location services
             Input.location.Stop();
             // Reset location support
-            _location_supported = SensorAvailable.NOT_TESTED;
+            _location_supported = SensorAvailable.NotTested;
 
             // Free the concurrency lock
             _lock = 1;

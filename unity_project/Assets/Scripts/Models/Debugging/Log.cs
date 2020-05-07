@@ -4,11 +4,11 @@
 /// Static class used to print debugging messages on the top-left corner of the screen.
 /// </summary>
 static class Log {
-    // Maximum number of lines displayed at any one time
-    const int MAX_LINES = 10;
     // Whether debugging mode for debug messages is enabled
     static public bool Enabled { get; set; } = true;
-
+    
+    // Maximum number of lines displayed at any one time
+    const int MAX_LINES = 10;
     // Reference to current log text
     static public string Text { get; private set; } = "";
     // Initial line to print, if only more recent information need to be displayed

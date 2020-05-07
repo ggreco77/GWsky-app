@@ -8,14 +8,14 @@ using UnityEngine.Networking;
 
 public class EventDatabase : MonoBehaviour {
     // Base path containing all events data
-    string base_path = "";
+    string _base_path = "";
     readonly Dictionary<string, EventSummary> _events = new Dictionary<string, EventSummary>();
 
     EventData _curr_event;
 
     void Awake() {
         //Base path is initialized here because Unity doesn't allow using persistentDataPath outside a function.
-        base_path = Application.persistentDataPath + "/Events/";
+        _base_path = Application.persistentDataPath + "/Events/";
     }
 
     public Dictionary<string, EventSummary> GetEventsList() {
@@ -44,7 +44,7 @@ public class EventDatabase : MonoBehaviour {
         EventData new_evt = new EventData();
 
         //Get all images path in event folder
-        string[] images_name = Directory.GetFiles(base_path + event_ID, "*.jpg");
+        string[] images_name = Directory.GetFiles(_base_path + event_ID, "*.jpg");
 
         //Load each image into a byte array, then in a Texture2D structure
         Texture2D[] tex_a = new Texture2D[images_name.Length];
@@ -62,7 +62,7 @@ public class EventDatabase : MonoBehaviour {
 
         try {
             //Get data from data folder. 
-            StreamReader file = new StreamReader(base_path + event_ID + "/data/data.txt");
+            StreamReader file = new StreamReader(_base_path + event_ID + "/data/data.txt");
             string[] str;
             while ((str = TextRead.ReadCurrLine(file)) != null) {
                 switch (str[0]) {
@@ -95,13 +95,13 @@ public class EventDatabase : MonoBehaviour {
         }
 
         // Get audio file, if present
-        string[] audio_name = Directory.GetFiles(base_path + event_ID + "/data", "*.mp3");
+        string[] audio_name = Directory.GetFiles(_base_path + event_ID + "/data", "*.mp3");
         switch (audio_name.Length) {
             case 0:
                 new_evt.WaveSound = null;
                 break;
             case 1:
-                yield return StartCoroutine(GetAudioClip(new_evt, audio_name[0]));
+                yield return StartCoroutine(LoadAudioClip(new_evt, audio_name[0]));
                 break;
             default:
                 throw new Exception("Wrong number of audio files for event " + event_ID + "!");
@@ -114,7 +114,7 @@ public class EventDatabase : MonoBehaviour {
         _curr_event = new_evt;
     }
 
-    IEnumerator GetAudioClip(EventData evt_data, string full_path) {
+    IEnumerator LoadAudioClip(EventData evt_data, string full_path) {
         UnityWebRequest location = UnityWebRequestMultimedia.GetAudioClip("file://" + full_path, AudioType.MPEG);
         yield return location.SendWebRequest();
 
@@ -153,22 +153,22 @@ public class EventDatabase : MonoBehaviour {
             string event_ID = pair.Key;
             EventSummary evt = pair.Value;
 
-            if (Directory.Exists(base_path + event_ID)) {
+            if (Directory.Exists(_base_path + event_ID)) {
                 try {
                 string hash = "";
                 for (int i = 0; i < evt.PhotospheresNumber; i++) {
-                    if (File.Exists(base_path + event_ID + "/" + i + ".jpg"))
-                        hash += HashExtension.GetHashMD5(base_path + event_ID + "/" + i + ".jpg");
+                    if (File.Exists(_base_path + event_ID + "/" + i + ".jpg"))
+                        hash += HashExtension.GetHashMD5(_base_path + event_ID + "/" + i + ".jpg");
                     else
                         throw new FileLoadException();
                 }
 
-                if (File.Exists(base_path + event_ID + "/data/data.txt"))
-                    hash += HashExtension.GetHashMD5(base_path + event_ID + "/data/data.txt");
+                if (File.Exists(_base_path + event_ID + "/data/data.txt"))
+                    hash += HashExtension.GetHashMD5(_base_path + event_ID + "/data/data.txt");
                 else
                     throw new FileLoadException();
-                if (File.Exists(base_path + event_ID + "/data/sound.mp3"))
-                    hash += HashExtension.GetHashMD5(base_path + event_ID + "/data/sound.mp3");
+                if (File.Exists(_base_path + event_ID + "/data/sound.mp3"))
+                    hash += HashExtension.GetHashMD5(_base_path + event_ID + "/data/sound.mp3");
                 else
                     throw new FileLoadException();
 
@@ -180,7 +180,7 @@ public class EventDatabase : MonoBehaviour {
                     throw new FileLoadException();
                 }
                 catch (FileLoadException) {
-                    Directory.Delete(base_path + event_ID, true);
+                    Directory.Delete(_base_path + event_ID, true);
                     _events[event_ID].OnLocalStorage = false;
                 }
             }
@@ -188,27 +188,27 @@ public class EventDatabase : MonoBehaviour {
     }
 
     public void DownloadEvent(string event_ID) {
-        Directory.CreateDirectory(base_path + event_ID);
-        Directory.CreateDirectory(base_path + event_ID + "/data");
+        Directory.CreateDirectory(_base_path + event_ID);
+        Directory.CreateDirectory(_base_path + event_ID + "/data");
 
         for (int i = 0; i < _events[event_ID].PhotospheresNumber; i++) {
             TextAsset image = Resources.Load<TextAsset>("Packets/" + event_ID + "/" + i);
-            File.WriteAllBytes(base_path + event_ID + "/" + i + ".jpg", image.bytes);
+            File.WriteAllBytes(_base_path + event_ID + "/" + i + ".jpg", image.bytes);
         }
 
         TextAsset evt_data = Resources.Load("Packets/" + event_ID + "/data") as TextAsset;
-        File.WriteAllBytes(base_path + event_ID + "/data/data.txt", evt_data.bytes);
+        File.WriteAllBytes(_base_path + event_ID + "/data/data.txt", evt_data.bytes);
 
         TextAsset wave_sound = Resources.Load("Packets/" + event_ID + "/sound") as TextAsset;
         if (wave_sound != null)
-            File.WriteAllBytes(base_path + event_ID + "/data/sound.mp3", wave_sound.bytes);
+            File.WriteAllBytes(_base_path + event_ID + "/data/sound.mp3", wave_sound.bytes);
 
         _events[event_ID].OnLocalStorage = true;
     }
 
     public void DeleteEvent(string event_ID) {
         if (_events[event_ID].OnLocalStorage)
-            Directory.Delete(base_path + event_ID, true);
+            Directory.Delete(_base_path + event_ID, true);
 
         _events[event_ID].OnLocalStorage = false;
     }
@@ -228,7 +228,7 @@ public class EventData {
 
     public int CurrentPhotosphere { get; set; } = 0;
 
-    public Vector2 ArrowPointsTo = new Vector2(0, 90);
+    public Vector2 ArrowPointsTo { get; set; } = new Vector2(0, 90);
     public AudioClip WaveSound { get; set; } = null;
 
     public string[] PhotosphereTypes { get; set; }
