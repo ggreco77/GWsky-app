@@ -63,7 +63,7 @@ class ArrowCamera : MonoBehaviour {
         Vector3 v2 = SOFConverter.EquirectangularToSphere(_events_db.GetLoadedEvent().ArrowPointsTo, _photosphere).normalized;
         Vector3 axis = Vector3.Cross(v1, v2).normalized;
 
-        float rot_angle = SOFConverter.RelativeAngleOnSphere(axis, v1, v2);
+        float rot_angle = MathExtension.RelativeAngleOnSphere(axis, v1, v2);
         if (Math.Abs(rot_angle) < CLOSENESS_MAX_ANGLE)
             _curr_closeness_counter++;
         else

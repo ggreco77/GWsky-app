@@ -72,4 +72,12 @@ public static class MathExtension {
         // Return the median
         return median;
     }
+
+    public static float RelativeAngleOnSphere(Vector3 axis, Vector3 v1, Vector3 v2) {
+        // Compute angle between the two vectors. Formulae are taken
+        // from https://stackoverflow.com/questions/14066933/direct-way-of-computing-clockwise-angle-between-2-vectors
+        float dot = Vector3.Dot(v1, v2);
+        float det = Vector3.Dot(axis, Vector3.Cross(v1, v2));
+        return (float)MathExtension.ToDegrees(Mathf.Atan2(det, dot));
+    }
 }

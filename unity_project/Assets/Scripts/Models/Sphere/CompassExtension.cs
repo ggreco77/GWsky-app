@@ -1,5 +1,8 @@
 ﻿using UnityEngine;
 using System;
+using System.Threading.Tasks;
+using System.Net.Sockets;
+using System.IO;
 
 /// <summary>
 /// Static class containing methods related to functionalities of the compass.

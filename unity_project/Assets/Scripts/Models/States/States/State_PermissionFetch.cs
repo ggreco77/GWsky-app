@@ -17,10 +17,9 @@ class State_PermissionFetch : State {
     }
 
     readonly PermissionUI _permission_UI;
+    bool _closing = false;
 
-    bool closing = false;
-
-    readonly List<string> android_permissions = new List<string>() {
+    readonly List<string> _android_permissions = new List<string>() {
         Permission.FineLocation,
         "android.permission.ACCESS_NETWORK_STATE",
         "android.permission.INTERNET"
@@ -33,16 +32,16 @@ class State_PermissionFetch : State {
         _permission_UI.StartCoroutine(_permission_UI.Enable());
         
         #if PLATFORM_ANDROID
-        for (int i = 0; i < android_permissions.Count && !closing; i++) {
-            AndroidRuntimePermissions.Permission permission = AndroidRuntimePermissions.CheckPermission(android_permissions[i]);
-            while (permission != AndroidRuntimePermissions.Permission.Granted && !closing) {
+        for (int i = 0; i < _android_permissions.Count && !_closing; i++) {
+            AndroidRuntimePermissions.Permission permission = AndroidRuntimePermissions.CheckPermission(_android_permissions[i]);
+            while (permission != AndroidRuntimePermissions.Permission.Granted && !_closing) {
                 switch (permission) {
                     case AndroidRuntimePermissions.Permission.ShouldAsk:
-                        permission = AndroidRuntimePermissions.RequestPermission(android_permissions[i]);
+                        permission = AndroidRuntimePermissions.RequestPermission(_android_permissions[i]);
                         break;
                     case AndroidRuntimePermissions.Permission.Denied:
                         _permission_UI.StartCoroutine(_permission_UI.PermissionDenied());
-                        closing = true;
+                        _closing = true;
                         break;
                 }
             }
@@ -51,7 +50,7 @@ class State_PermissionFetch : State {
     }
 
     public override void Update() {
-        if (!closing)
+        if (!_closing)
             StateMachine.IssueChangeState(new State_MainMenu(StateMachine, _UI_container));
     }
 

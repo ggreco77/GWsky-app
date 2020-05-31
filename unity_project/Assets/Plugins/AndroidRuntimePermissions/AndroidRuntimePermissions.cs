@@ -9,6 +9,10 @@ using UnityEngine;
 using AndroidRuntimePermissionsNamespace;
 #endif
 
+/// <summary>
+/// Credits to Süleyman Yasir Kula for this plugin, which can be found at
+/// https://assetstore.unity.com/packages/tools/integration/android-runtime-permissions-117803.
+/// </summary>
 public static class AndroidRuntimePermissions
 {
 	public enum Permission { Denied = 0, Granted = 1, ShouldAsk = 2 };

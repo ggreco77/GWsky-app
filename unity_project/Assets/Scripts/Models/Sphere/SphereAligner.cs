@@ -7,6 +7,9 @@ using System.Net.Sockets;
          In Unity's case, tasks can only be executed on the main thread whenever they contain any reference to any
          class or variable in UnityEngine (since Unity is not thread-safe), as is in our case. */
 using System.Threading.Tasks;
+using System.Text.RegularExpressions;
+using System.Linq;
+using System.Net;
 
 /// <summary>
 /// Component aligning a photosphere with the real-world star locations, based on the device's sensors.
@@ -36,7 +39,7 @@ class SphereAligner : MonoBehaviour {
     // First point is chosen as one of the poles to ensure most precise positioning of the poles,
     // Second point MUST be chosen close enough to first one (see sphere alignment methods)
     Vector2 _p_a = new Vector2(0, 90);
-    Vector2 _p_b = new Vector2(0.001f, 89.999f);
+    Vector2 _p_b = new Vector2(0, 89.999f);
 
     // Reference to photosphere to align
     Transform _sphere;
@@ -73,9 +76,14 @@ class SphereAligner : MonoBehaviour {
     public double LHA { get; private set; }
     //GPS, in format (latitude, longitude)
     public Vector2 GPS { get; private set; }
+    //North deviation from Magnetic to True heading
+    public float NorthDev { get; private set; }
     //Heading to True North as a 3D Vector of roll, yaw, pitch
     public Vector3 RelNorth { get; private set; }
     //Equatorial->Local Coordinates Converted
+
+    public float SecondRotAngle { get; private set; }
+
     public Vector2 Az_H { get; private set; }
 
     /// <summary>
@@ -125,13 +133,13 @@ class SphereAligner : MonoBehaviour {
         _sphere_radius = _sphere.localScale.x;
     }
 
-    //
     /// <summary>
     /// Contact NIST server and retrieve UTC time.
     /// </summary>
     /// Asynchronous because it has to wait the server response.
     /// <returns></returns>
     async Task<DateTime> GetNISTDate() {
+        UTC = default;
         // URL of the server to contact as a string
         string server = "time.nist.gov";
         // response body of the server
@@ -216,6 +224,85 @@ class SphereAligner : MonoBehaviour {
         // Return a valid UTC time
         return UTC;
     }
+
+    /// <summary>
+    /// Contact NOAA server and retrieve Magnetic North deviation.
+    /// </summary>
+    /// Asynchronous because it has to wait the server response.
+    /// <returns></returns>
+    async Task<float> GetNorthDeviation(float lat, float lon) {
+        // URL of the server to contact as a string
+        string server = "http://www.ngdc.noaa.gov/geomag-web/calculators/calculateDeclination";
+        // Build query string
+        string query = server + "?lat1=" + lat.ToString("0.000000") + "&lon1=" + lon.ToString("0.000000") + "&resultFormat=csv";
+        // response body of the server
+        string string_response;
+
+        // North deviation westwards
+        float deviation = 0;
+
+        // Attempt a connection...
+        try {
+            // Create a new HTTP Web Request
+            HttpWebRequest request = WebRequest.Create(new Uri(query)) as HttpWebRequest;
+            request.Method = "GET";
+            // connect Asynchronously to the server
+            var task = Task<WebResponse>.Factory.FromAsync(request.BeginGetResponse, request.EndGetResponse, request);
+            // Await closure of connection OR a 3 seconds timeout
+            Task completed_task = await Task.WhenAny(task, Task.Delay(5000));
+            // If there hasn't been a timeout...
+            if (completed_task == task) {
+                // Get the stream from the connection
+                var reader = new StreamReader(task.Result.GetResponseStream());
+                // Get the body to the response string from the stream
+                string_response = reader.ReadToEnd();
+                // Close the stream (and thus the connection)
+                reader.Close();
+            }
+            // Otherwise...
+            else {
+                // Print a warning message
+                Log.Print("Warning! Could not Connect to NOAA Server. Timeout.", Log.Colors.Warning);
+                // Set internal error status to true
+                _error = true;
+                // Return
+                return deviation;
+            }
+        }
+        // If there has been some uncaught kind of exception...
+        catch (Exception e) {
+            // Print a warning message displaying the message of the exception
+            Log.Print("Warning! Could not Connect to NOAA Server. " + e.Message, Log.Colors.Warning);
+            // Set internal error status to true
+            _error = true;
+            // Return
+            return deviation;
+        }
+
+        // If the UTC signature is in the response string...
+        if (string_response.Substring(72, 18) == "Declination Values") {
+            while (string_response[0] == '#') {
+                var lines = Regex.Split(string_response, "\r\n|\r|\n").Skip(1);
+                string_response = string.Join(Environment.NewLine, lines.ToArray());
+            }
+            Debug.Log(string_response);
+            string[] values = string_response.Split(new char[]{','}, StringSplitOptions.RemoveEmptyEntries);
+            deviation = float.Parse(values[4]);
+        }
+        // If for some reason signature is not there...
+        else {
+            // Print a warning message displaying the message of the exception
+            Log.Print("Warning! Could not retrieve NIST Time. Unexpected server response body!", Log.Colors.Warning);
+            // Set internal error status to true
+            _error = true;
+            // Return
+            return deviation;
+        }
+
+        // Return a valid UTC time
+        return deviation;
+    }
+
     /// <summary>
     /// Start location service, retrieve GPS and North True Heading, close location service.
     /// </summary>
@@ -258,6 +345,9 @@ class SphereAligner : MonoBehaviour {
         // Number of attempts made
         int count = 0;
 
+        // Get magnetic deviation from true north
+        await GetNorthDeviation(GPS.x, GPS.y);
+
         do {
             // Add a new heading to list, queried from the compass
             norths.Add(CompassExtension.CompensatedHeading(Input.compass.rawVector,
@@ -269,7 +359,7 @@ class SphereAligner : MonoBehaviour {
             await Task.Delay(TimeSpan.FromSeconds(0.1));
         }
         // Read at least MIN_COMPASS_READINGS times and until accuracy is positive (see Unity documentation)
-        while (count > MIN_COMPASS_READINGS &&
+        while (count < MIN_COMPASS_READINGS &&
                (count < MAX_COMPASS_READINGS || Input.compass.headingAccuracy < MIN_COMPASS_ACCURACY &&
                                                 Input.compass.headingAccuracy > 0));
 
@@ -277,6 +367,8 @@ class SphereAligner : MonoBehaviour {
         RelNorth = MathExtension.GetMedian(norths.ToArray(), delegate (Vector3 v1, Vector3 v2) {
                 return v1.y.CompareTo(v2.y);
             });
+        // Add deviation of magnetic north to obtain true heading
+        RelNorth = new Vector3(RelNorth.x, RelNorth.y - NorthDev, RelNorth.z);
     }
 
     /// <summary>
@@ -284,16 +376,9 @@ class SphereAligner : MonoBehaviour {
     /// </summary>
     /// <param name="RA_Dec"></param>
     /// <returns></returns>
-    async Task<Vector2> ICRSToLocal(Vector2 RA_Dec) {
+    Vector2 ICRSToLocal(Vector2 RA_Dec) {
         // Converted local coordinates
         Vector2 az_h;
-
-        // Get updated UTC, if needed
-        if (_query_UTC)
-            await GetNISTDate();
-        // Return prematurely on error
-        if (_error)
-            return new Vector2(0, 0);
 
         // Compute GMST
         // Difference in days from standard date
@@ -306,12 +391,6 @@ class SphereAligner : MonoBehaviour {
         int minutes = (int)(MathExtension.DecimalPart(GMST_n) * 60);
         int seconds = (int)(MathExtension.DecimalPart(GMST_n * 60) * 60);
         GMST = new TimeSpan(0, hours, minutes, seconds);
-
-        // Get GPS and True North Heading
-        await GetGPSAndRelativeNorth();
-        // Return prematurely on error
-        if (_error)
-            return new Vector2(0, 0);
         
         // LST = GMST - longitude west = GMST + longitude east. Longitude is converted by dividing by 15
         // since 360 / 24 = 15
@@ -337,7 +416,7 @@ class SphereAligner : MonoBehaviour {
             az = 0;
         }
 
-        // Since az is in range [-180; 180] as per atan2, convert it to range [0; 360] as per astronomy standards
+        // Since az is in range [-180; 180] as per atan2, convert it to range [0; 360] as per standards
         if (az < 0)
             az += (float)Math.PI * 2;
 
@@ -372,6 +451,9 @@ class SphereAligner : MonoBehaviour {
                 Log.Print("Failed to align sphere! Too unstable! " + _camera.GetComponent<CameraRig>().TrackingValue, Log.Colors.Error);
                 // And requeue the alignment
                 _requeue = true;
+                // If time needs to be queried again, ensure to wait at least 4 seconds (requirement by NIST servers)
+                if (_query_UTC)
+                    await Task.Delay(TimeSpan.FromSeconds(4.0f));
             }
             // Else, if an error has been raised during coordinates computation, retry
             else if (_error) {
@@ -381,9 +463,12 @@ class SphereAligner : MonoBehaviour {
                     await Task.Delay(TimeSpan.FromSeconds(4.0f));
             }
             // If camera has not moved much and no errors were raised during coordinates computation...
-            else
+            else {
                 // Align sphere based on obtained rotation
                 ApplySphereAlignment(local_coords);
+                // Print a bunch of debug info
+                PrintDebugInfo();
+                }
 
             // Allow another call for this function. Return point
             _lock = 1;
@@ -445,32 +530,29 @@ class SphereAligner : MonoBehaviour {
             Vector3 b = SOFConverter.EquirectangularToSphere(_p_b, _sphere_destination, _sphere_radius);
             Vector3 c = SOFConverter.EquirectangularToSphere(_p_b, _sphere_b, _sphere_radius);
 
-            // Compute two vectors going from point a to points b and c: these vectors form an angle, which is the angle to which
-            // photosphere should be rotated around the axis passing through a to align the second point
-            Vector3 u = b - a;
-            Vector3 v = c - a;
-
             // Axis of rotation
             Vector3 axis = a.normalized;
-            float rot_angle = SOFConverter.RelativeAngleOnSphere(axis, u, v);
+
+            // Compute two vectors going from point a to points b and c: these vectors form an angle, which is the angle to which
+            // photosphere should be rotated around the axis passing through a to align the second point
+            Vector3 u = b;
+            Vector3 v = c;
+            // Project vectors onto plane perpendicular to axis by subtracting their projection onto axis
+            u -= Vector3.Dot(u, axis) * axis;
+            v -= Vector3.Dot(v, axis) * axis;
+            
+            Log.Print(u.ToString());
+            Log.Print(v.ToString());
+            // Compute relative angle between the two vectors as seen by axis
+            SecondRotAngle = MathExtension.RelativeAngleOnSphere(axis, u, v);
             
             // Rotate photosphere around axis passing through a by the computed angle
             _sphere_destination.RotateAround(Vector3.zero,
                                              SOFConverter.EquirectangularToSphere(_p_a, _sphere_destination, _sphere_radius),
-                                             rot_angle);
+                                             SecondRotAngle);
         
             // Signal that first calibration has been finished
             _lookaround_UI.FirstCalibrationDone();
-
-            //Print a bunch of debug info
-            /*
-            Log.PrintClear("Roll: " + MathExtension.DegRestrict(RelNorth.x));
-            Log.Print("Pitch: " + MathExtension.DegRestrict(RelNorth.z));
-            Log.Print("Yaw: " + MathExtension.DegRestrict(RelNorth.y));
-            Log.Print("Rotation: " + new Vector3(a_az_h.x, a_az_h.y, rot_angle).ToString());
-            Log.Print("Magnetometer: " + Input.compass.rawVector.ToString());
-            Log.Print("Accelerometer: " + Input.gyro.gravity.ToString());
-            */
         }
         // If for some reason an unhandled exception is raised...
         catch (Exception e) {
@@ -480,13 +562,38 @@ class SphereAligner : MonoBehaviour {
     }
 
     /// <summary>
+    /// Print a series of info to Log for debugging purposes.
+    /// </summary>
+    void PrintDebugInfo() {
+        Log.PrintClear("UTC:" + UTC.ToString());
+        Log.Print("North Dir: " + RelNorth.ToString());
+        Log.Print("Roll: " + MathExtension.DegRestrict(RelNorth.x));
+        Log.Print("Pitch: " + MathExtension.DegRestrict(RelNorth.z));
+        Log.Print("Yaw: " + MathExtension.DegRestrict(RelNorth.y));
+        Log.Print("Magnetometer: " + Input.compass.rawVector.ToString());
+        Log.Print("Accelerometer: " + Input.gyro.gravity.ToString());
+        Log.Print("Second Rot Angle: " + SecondRotAngle);
+    }
+
+    /// <summary>
     /// Compute the local coordinates for points a and b.
     /// </summary>
     /// <returns></returns>
     async Task<Tuple<Vector2, Vector2>> ComputeSphereAlignment() {
+        // Get GPS and True North Heading
+        await GetGPSAndRelativeNorth();
+        // Return prematurely on error
+        if (_error)
+            return default;
+        // Get updated UTC, if needed
+        if (_query_UTC)
+            await GetNISTDate();
+        // Return prematurely on error
+        if (_error)
+            return default;
         //Compute local coordinates for both reference points
-        Vector2 a_az_h = Az_H = await ICRSToLocal(new Vector2(_p_a.x, _p_a.y));
-        Vector2 b_az_h = await ICRSToLocal(new Vector2(_p_b.x, _p_b.y));
+        Vector2 a_az_h = Az_H = ICRSToLocal(new Vector2(_p_a.x, _p_a.y));
+        Vector2 b_az_h = ICRSToLocal(new Vector2(_p_b.x, _p_b.y));
         
         // Return the local coordinates in a tuple
         return new Tuple<Vector2, Vector2>(a_az_h, b_az_h);
