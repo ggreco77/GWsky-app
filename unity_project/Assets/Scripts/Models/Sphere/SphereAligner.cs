@@ -36,10 +36,10 @@ class SphereAligner : MonoBehaviour {
     float _sphere_radius;
 
     // Coordinates of the two points in the ICRS system used for photosphere alignment.
-    // First point is chosen as one of the poles to ensure most precise positioning of the poles,
-    // Second point MUST be chosen close enough to first one (see sphere alignment methods)
+    // First point is chosen as one of the poles to ensure most precise positioning of the poles.
+    // DO NOT use (90, 0) or (270, 0) as reference points, or a gymbal lock will happen.
     Vector2 _p_a = new Vector2(0, 90);
-    Vector2 _p_b = new Vector2(0, 89.999f);
+    Vector2 _p_b = new Vector2(0, 70);
 
     // Reference to photosphere to align
     Transform _sphere;
@@ -468,7 +468,7 @@ class SphereAligner : MonoBehaviour {
                 ApplySphereAlignment(local_coords);
                 // Print a bunch of debug info
                 PrintDebugInfo();
-                }
+            }
 
             // Allow another call for this function. Return point
             _lock = 1;
@@ -510,18 +510,18 @@ class SphereAligner : MonoBehaviour {
             _sphere_destination.RotateAround(Vector3.zero, _sphere_destination.up, -_p_a.y);         // + Altitude
             _sphere_destination.RotateAround(Vector3.zero, _sphere_destination.forward, -_p_a.x);     // + Azimuth
             // Rotate photosphere by the computed azimuth and altitude, so that point a aligns with its real world position
-            _sphere_destination.RotateAround(Vector3.zero, SOFConverter.EquirectangularToAbsoluteSphere(new Vector2(0, 90), _sphere_radius),
-                                             a_az_h.x);     // + Azimuth
-            _sphere_destination.RotateAround(Vector3.zero, SOFConverter.EquirectangularToAbsoluteSphere(new Vector2(180, 0), _sphere_radius),
+            _sphere_destination.RotateAround(Vector3.zero, SOFConverter.EquirectangularToSphere(new Vector2(90, 0), _north_sphere_destination, _sphere_radius),
                                              a_az_h.y);     // + Altitude
-            
+            _sphere_destination.RotateAround(Vector3.zero, SOFConverter.EquirectangularToSphere(new Vector2(0, 90), _north_sphere_destination, _sphere_radius),
+                                             a_az_h.x);     // + Azimuth
+
             // Do these last two steps exactly the same on the clone sphere for point b
             _sphere_b.RotateAround(Vector3.zero, _sphere_b.up, -_p_b.y);         // + Altitude
             _sphere_b.RotateAround(Vector3.zero, _sphere_b.forward, -_p_b.x);     // + Azimuth
-            _sphere_b.RotateAround(Vector3.zero, SOFConverter.EquirectangularToAbsoluteSphere(new Vector2(0, 90), _sphere_radius),
-                                   b_az_h.x);     // + Azimuth
-            _sphere_b.RotateAround(Vector3.zero, SOFConverter.EquirectangularToAbsoluteSphere(new Vector2(180, 0), _sphere_radius),
+            _sphere_b.RotateAround(Vector3.zero, SOFConverter.EquirectangularToSphere(new Vector2(90, 0), _north_sphere_destination, _sphere_radius),
                                    b_az_h.y);     // + Altitude
+            _sphere_b.RotateAround(Vector3.zero, SOFConverter.EquirectangularToSphere(new Vector2(0, 90), _north_sphere_destination, _sphere_radius),
+                                   b_az_h.x);     // + Azimuth
             
             // Second Point Alignment
             // Find the three points on the 3D space corresponding to the aligned positions of a (a), b (c) and the position in
@@ -541,8 +541,6 @@ class SphereAligner : MonoBehaviour {
             u -= Vector3.Dot(u, axis) * axis;
             v -= Vector3.Dot(v, axis) * axis;
             
-            Log.Print(u.ToString());
-            Log.Print(v.ToString());
             // Compute relative angle between the two vectors as seen by axis
             SecondRotAngle = MathExtension.RelativeAngleOnSphere(axis, u, v);
             
@@ -550,7 +548,7 @@ class SphereAligner : MonoBehaviour {
             _sphere_destination.RotateAround(Vector3.zero,
                                              SOFConverter.EquirectangularToSphere(_p_a, _sphere_destination, _sphere_radius),
                                              SecondRotAngle);
-        
+            
             // Signal that first calibration has been finished
             _lookaround_UI.FirstCalibrationDone();
         }
@@ -565,6 +563,7 @@ class SphereAligner : MonoBehaviour {
     /// Print a series of info to Log for debugging purposes.
     /// </summary>
     void PrintDebugInfo() {
+        /*
         Log.PrintClear("UTC:" + UTC.ToString());
         Log.Print("North Dir: " + RelNorth.ToString());
         Log.Print("Roll: " + MathExtension.DegRestrict(RelNorth.x));
@@ -573,6 +572,7 @@ class SphereAligner : MonoBehaviour {
         Log.Print("Magnetometer: " + Input.compass.rawVector.ToString());
         Log.Print("Accelerometer: " + Input.gyro.gravity.ToString());
         Log.Print("Second Rot Angle: " + SecondRotAngle);
+        */
     }
 
     /// <summary>
