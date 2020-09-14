@@ -12,6 +12,7 @@ class ArrowCamera : MonoBehaviour {
     Transform _photosphere;
     LookAroundUI _look_around_UI;
     MeshRenderer _arrow_renderer;
+    AudioSource _audio_source;
 
     float _radius;
     Quaternion _prev_camera_rotation;
@@ -19,6 +20,9 @@ class ArrowCamera : MonoBehaviour {
     const int CLOSENESS_FRAMES = 100;
     const float CLOSENESS_MAX_ANGLE = 20f;
     int _curr_closeness_counter = 0;
+
+    (float, float) _blip_frames = (15, 70);
+    int _curr_blip_counter;
 
     public bool ClosenessCheck { get; set; } = true;
 
@@ -30,7 +34,7 @@ class ArrowCamera : MonoBehaviour {
         _look_around_UI = look_around_UI;
 
         _arrow_renderer = Arrow.Find("Arrow").GetComponent<MeshRenderer>();
-
+        _audio_source = GetComponent<AudioSource>();
         _radius = Math.Abs(transform.position.z);
 
         Disable();
@@ -64,6 +68,15 @@ class ArrowCamera : MonoBehaviour {
         Vector3 axis = Vector3.Cross(v1, v2).normalized;
 
         float rot_angle = MathExtension.RelativeAngleOnSphere(axis, v1, v2);
+
+        // Play "blip" sound
+        if (_curr_blip_counter == 0) {
+            _curr_blip_counter = (int)Math.Round(Mathf.Lerp(_blip_frames.Item1, _blip_frames.Item2, rot_angle / 180));
+            _audio_source.Stop();
+            _audio_source.Play();
+        }
+        _curr_blip_counter--;
+
         if (Math.Abs(rot_angle) < CLOSENESS_MAX_ANGLE)
             _curr_closeness_counter++;
         else
@@ -84,10 +97,12 @@ class ArrowCamera : MonoBehaviour {
     public void Disable() {
         _arrow_renderer.enabled = false;
         ClosenessCheck = false;
+        _curr_blip_counter = -1;
     }
 
     public void Enable() {
         _arrow_renderer.enabled = true;
         ClosenessCheck = true;
+        _curr_blip_counter = 0;
     }
 }

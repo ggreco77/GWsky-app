@@ -617,8 +617,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: -434.3}
-  m_SizeDelta: {x: 0, y: 868.8}
+  m_AnchoredPosition: {x: 0, y: -599.95}
+  m_SizeDelta: {x: 0, y: 1200.1}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &239988645
 MonoBehaviour:
@@ -642,9 +642,10 @@ MonoBehaviour:
       Version=1.0.0.0, Culture=neutral, PublicKeyToken=null
   m_text: "\r\nThe app is developed by <color=#000000>Valerio Tonelli</color> - Bachelor's
     thesis in Applied Computer Science at the <color=#000000>University of Urbino
-    \"Carlo Bo\"</color>.\r\n\r\nProject managers and contact points:\r\n> <color=#000000>Giuseppe
-    Greco</color> (<color=#42aaf5>giuseppe.greco@uniurb.it</color>),\r\n> <color=#000000>Valerio
-    Tonelli</color> (<color=#42aaf5>tonellivalerio97@gmail.com</color>).\r\n\r\nThe
+    \"Carlo Bo\"</color>.\r\n\nThis software is developed within the <color=#000000>LIGO-Virgo-Kagra
+    Collaboration</color> for gravitational-waves detection.\n\r\nProject managers
+    and contact points:\r\n> <color=#000000>Giuseppe Greco</color> (<color=#42aaf5>giuseppe.greco@uniurb.it</color>),\r\n>
+    <color=#000000>Valerio Tonelli</color> (<color=#42aaf5>tonellivalerio97@gmail.com</color>).\r\n\r\nThe
     authors acknowledge the <color=#000000>ESCAPE H2020 project n. 824064</color>,
     the <color=#000000>Centre de Donntronomiques de Strasbourg (CDS)</color> and the
     <color=#000000>REINFORCE Research & Innovation project</color> launched by the
@@ -657,9 +658,9 @@ MonoBehaviour:
     Telescope 3D Model by abooxii at <color=#42aaf5>https://free3d.com\r</color>\n>
     3D Terrain and Trees at <color=#42aaf5>https://free3d.com\r</color>\n> Starry
     Sky BG by NASA at <color=#42aaf5>https://svs.gsfc.nasa.gov/3895\r</color>\n> Nasalization
-    font by <color=#000000>Typodermicfonts\r</color>\n\r\nCredits for pieces of code
-    and plugins used is given within the application code itself, either in comments
-    or in appropriate text files."
+    font by <color=#000000>Typodermicfonts\r</color>\n> Blip SFX by Junggle at <color=#42aaf5>https://freesound.org</color>\n\r\nCredits
+    for pieces of code and plugins used is given within the application code itself,
+    either in comments or in appropriate text files."
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: a5ee877bac927f14fafa8ee25fabb340, type: 2}
   m_sharedMaterial: {fileID: 8259379138911233661, guid: a5ee877bac927f14fafa8ee25fabb340,
@@ -705,7 +706,7 @@ MonoBehaviour:
   m_enableWordWrapping: 1
   m_wordWrappingRatios: 0.4
   m_overflowMode: 0
-  m_firstOverflowCharacterIndex: 1108
+  m_firstOverflowCharacterIndex: -1
   m_linkedTextComponent: {fileID: 0}
   m_isLinkedTextComponent: 0
   m_isTextTruncated: 0
@@ -729,12 +730,12 @@ MonoBehaviour:
   m_margin: {x: 0, y: 0, z: 0, w: 0}
   m_textInfo:
     textComponent: {fileID: 239988645}
-    characterCount: 1131
+    characterCount: 1283
     spriteCount: 0
-    spaceCount: 168
-    wordCount: 171
+    spaceCount: 187
+    wordCount: 190
     linkCount: 0
-    lineCount: 32
+    lineCount: 36
     pageCount: 1
     materialCount: 1
   m_isUsingLegacyAnimationComponent: 0
@@ -4127,6 +4128,7 @@ GameObject:
   - component: {fileID: 1824420077}
   - component: {fileID: 1824420080}
   - component: {fileID: 1824420078}
+  - component: {fileID: 1824420079}
   m_Layer: 0
   m_Name: Arrow Camera
   m_TagString: MainCamera
@@ -4160,6 +4162,102 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4d69d7d6e2cc2f4439d66653289ab8b6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!82 &1824420079
+AudioSource:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1824420076}
+  m_Enabled: 1
+  serializedVersion: 4
+  OutputAudioMixerGroup: {fileID: 0}
+  m_audioClip: {fileID: 8300000, guid: d19fa83f82034eb478f4ad7d6f9e0cab, type: 3}
+  m_PlayOnAwake: 0
+  m_Volume: 1
+  m_Pitch: 1
+  Loop: 0
+  Mute: 0
+  Spatialize: 0
+  SpatializePostEffects: 0
+  Priority: 128
+  DopplerLevel: 1
+  MinDistance: 1
+  MaxDistance: 500
+  Pan2D: 0
+  rolloffMode: 0
+  BypassEffects: 0
+  BypassListenerEffects: 0
+  BypassReverbZones: 0
+  rolloffCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  panLevelCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  spreadCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  reverbZoneMixCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!20 &1824420080
 Camera:
   m_ObjectHideFlags: 0
